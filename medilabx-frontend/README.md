@@ -1,12 +1,69 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Frontend
 
-Currently, two official plugins are available:
+The project is organized as follows:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+medilabx-frontend
+├── public
+│   
+├── src
+│   ├── assets
+│   │   └── styles
+│   │       └── index.css   # Global styles for the application
+│   ├── components
+│   │   ├── AdminPanel.jsx           # Component for admin functionalities
+│   │   ├── AppointmentBooking.jsx    # Component for booking appointments
+│   │   ├── DoctorPanel.jsx           # Component for doctor functionalities
+│   │   ├── HomePage.jsx              # Component for the home page
+│   │   ├── LabStaffPanel.jsx         # Component for lab staff functionalities
+│   │   └── PatientDashboard.jsx      # Component for patient dashboard
+│   ├── pages
+│   │   ├── auth
+│   │   │   ├── Signin.jsx
+│   │   │   ├── Signup.jsx
+│   │   ├── AdminPanelPage.jsx        # Page for the Admin Panel
+│   │   ├── AppointmentBookingPage.jsx # Page for booking appointments
+│   │   ├── DoctorPanelPage.jsx       # Page for the Doctor Panel
+│   │   ├── Home.jsx                  # Main landing page
+│   │   ├── LabStaffPanelPage.jsx     # Page for the Lab Staff Panel
+│   │   └── PatientDashboardPage.jsx  # Page for the Patient Dashboard
+│   ├── App.jsx                       # Main application component
+│   ├── index.jsx                     # Entry point for the React application
+│   └── main.jsx                      # Initializes the React application
+├── package.json                      # Configuration file for npm
+├── .gitignore                        # Specifies files to ignore by Git
+├── index.html                        # Main HTML file
+└── README.md                         # Documentation for the project
+```
 
-## Expanding the ESLint configuration
+## Features
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Home**: Overview of services and options for login/signup.
+- **Patient Dashboard**: View appointments, test reports, and notifications.
+- **Book Appointment Page**: Select test types, schedule appointments, and handle payments.
+- **Lab Staff Panel**: Upload test results and manage appointments.
+- **Doctor Panel**: Review reports and provide comments.
+- **Admin Panel**: Manage users, payments, and analytics.
+
+## Getting Started
+
+1. Clone the repository:
+   ```
+   git clone git@github.com:abhishekpanda0620/MediLabX.git
+   ```
+
+2. Navigate to the project directory:
+   ```
+   cd medilabx-frontend
+   ```
+
+3. Install dependencies:
+   ```
+   npm install
+   ```
+
+4. Start the development server:
+   ```
+   npm start
+   ```
