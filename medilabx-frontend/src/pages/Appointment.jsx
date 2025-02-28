@@ -68,10 +68,10 @@ const Appointment = () => {
                   className={`
                     h-12 rounded-lg flex items-center justify-center
                     ${!isSameMonth(day, currentMonth) && 'text-gray-400'}
-                    ${isToday(day) && 'bg-blue-300 text-blue-600'}
+                    ${isToday(day) && 'bg-indigo-300 text-indigo-600'}
                     ${selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') 
-                      && 'bg-blue-600 text-white'}
-                    hover:bg-blue-300 active:bg-blue-300
+                      && 'bg-indigo-600 text-white'}
+                    hover:bg-indigo-300 active:bg-indigo-300
                   `}
                 >
                   {format(day, 'd')}
@@ -89,7 +89,7 @@ const Appointment = () => {
               {timeSlots.map((time) => (
                 <button
                   key={time}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   {time}
                 </button>
@@ -102,7 +102,7 @@ const Appointment = () => {
               <form className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Test Type</label>
-                  <select className="mt-1 block w-full rounded-md p-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <select className="mt-1 block w-full rounded-md p-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <option>Blood Test</option>
                     <option>X-Ray</option>
                     <option>MRI Scan</option>
@@ -112,13 +112,13 @@ const Appointment = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Notes</label>
                   <textarea 
-                    className="mt-1 block w-full rounded-md outline-none p-2 border-gray-500 shadow-md focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md outline-none p-2 border-gray-500 shadow-md focus:border-indigo-500 focus:ring-indigo-500"
                     rows={3}
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Book Appointment
                 </button>
