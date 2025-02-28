@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PatientDashboardPage from './pages/PatientDashboardPage';
-import AppointmentBookingPage from './pages/AppointmentBookingPage';
+import Appointment from './pages/Appointment';
 import AdminPanelPage from './pages/AdminPanelPage';
 import DoctorPanelPage from './pages/DoctorPanelPage';
 import LabStaffPanelPage from './pages/LabStaffPanelPage';
@@ -20,7 +20,7 @@ function App() {
 
         {/* Protected Routes */}
         <Route
-          path="/patient-dashboard"
+          path="/dashboard"
           element={
             <AuthGuard>
               <PatientDashboardPage />
@@ -28,10 +28,10 @@ function App() {
           }
         />
         <Route
-          path="/book-appointment"
+          path="/appointments"
           element={
             <AuthGuard>
-              <AppointmentBookingPage />
+              <Appointment />
             </AuthGuard>
           }
         />
