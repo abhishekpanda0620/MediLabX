@@ -1,64 +1,37 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import PatientDashboardPage from './pages/PatientDashboardPage';
-import Appointment from './pages/Appointment';
-import AdminPanelPage from './pages/AdminPanelPage';
-import DoctorPanelPage from './pages/DoctorPanelPage';
-import LabStaffPanelPage from './pages/LabStaffPanelPage';
-import SignIn from './pages/auth/Signin';
-import SignUp from './pages/auth/Signup';
-import Home from './pages/Home';
+import { publicRoutes, protectedRoutes } from './routes/routes';
 import AuthGuard from './components/AuthGuard';
 
 function App() {
+  // This should come from your auth context/state
+  const userRole = 'lab'; // Could be 'admin', 'doctor', 'lab', 'patient'
+
+  const getAllowedRoutes = () => {
+    const roleRoutes = protectedRoutes[userRole] || [];
+    const commonRoutes = protectedRoutes.common || [];
+    return [...roleRoutes, ...commonRoutes];
+  };
+
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
+        {publicRoutes.map(({ path, element: Element }) => (
+          <Route key={path} path={path} element={<Element />} />
+        ))}
 
         {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <AuthGuard>
-              <PatientDashboardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/appointments"
-          element={
-            <AuthGuard>
-              <Appointment />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/admin-panel"
-          element={
-            <AuthGuard>
-              <AdminPanelPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/doctor-panel"
-          element={
-            <AuthGuard>
-              <DoctorPanelPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/lab-staff-panel"
-          element={
-            <AuthGuard>
-              <LabStaffPanelPage />
-            </AuthGuard>
-          }
-        />
+        {getAllowedRoutes().map(({ path, element: Element }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <AuthGuard>
+                <Element />
+              </AuthGuard>
+            }
+          />
+        ))}
       </Routes>
     </Router>
   );

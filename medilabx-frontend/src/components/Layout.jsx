@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaHome, FaTachometerAlt, FaCalendarAlt, FaUserShield, FaSignInAlt, FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
+import { Link, useLocation } from 'react-router-dom';
+import { FaHome, FaTachometerAlt, FaCalendarAlt, FaSignInAlt, FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
+import Sidebar from './Sidebar';
 
 const Layout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const location = useLocation();
   const isAuthenticated = true;
+
+  // Don't show sidebar on home page or when not authenticated
+  const shouldShowSidebar = isAuthenticated && location.pathname !== '/';
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-gradient-to-r from-indigo-700 to-purple-700 text-white shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex justify-start items-center space-x-2 py-2 font-serif">
               <span className="text-xl md:text-2xl font-bold font-poppins">
                 Medi<span className='text-orange-500'>Lab</span><span className='text-2xl md:text-3xl'>X</span>
               </span>
@@ -26,7 +32,7 @@ const Layout = ({ children }) => {
             </button>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:block">
+            {/* <nav className="hidden md:block">
               <ul className="flex items-center space-x-6">
                 <li>
                   <Link to="/" className="flex items-center space-x-1 hover:text-indigo-200 transition duration-150">
@@ -68,7 +74,7 @@ const Layout = ({ children }) => {
                   </li>
                 )}
               </ul>
-            </nav>
+            </nav> */}
           </div>
 
           {/* Mobile Navigation */}
@@ -118,11 +124,21 @@ const Layout = ({ children }) => {
         </div>
       </header>
 
-      <main className="flex-grow p-4 bg-gray-50">
-        {children}
-      </main>
+      <div className="flex-grow flex">
+        {shouldShowSidebar && (
+          <Sidebar 
+            isCollapsed={isSidebarCollapsed}
+            toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            userRole="lab" // pass current user's role here (e.g., 'patient', 'admin', 'doctor', 'lab')
+          />
+        )}
 
-      <footer className="bg-indigo-700 text-white p-4 text-center">
+        <main className={`flex-grow p-4 bg-gray-50 ${shouldShowSidebar ? 'md:ml-0' : ''}`}>
+          {children}
+        </main>
+      </div>
+
+      <footer className="bg-indigo-700 text-white p-2 text-center">
         <div className="container mx-auto text-sm md:text-base">
           &copy; 2025 MediLabX. All rights reserved.
         </div>

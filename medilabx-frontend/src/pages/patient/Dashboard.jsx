@@ -1,5 +1,5 @@
 import React from 'react';
-import Layout from '../components/Layout';
+import Layout from '../../components/Layout';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { FaFileAlt, FaCalendarCheck, FaClipboardList, FaBell } from 'react-icons/fa';
 
@@ -30,6 +30,16 @@ const PatientDashboardPage = () => {
     { id: 2, name: 'Appointments', stat: '3', icon: FaCalendarCheck, color: 'bg-green-500' },
     { id: 3, name: 'Pending Reports', stat: '2', icon: FaClipboardList, color: 'bg-yellow-500' },
     { id: 4, name: 'Notifications', stat: '5', icon: FaBell, color: 'bg-purple-500' },
+  ];
+
+  const upcomingAppointments = [
+    { id: 1, test: 'Blood Test', date: '2024-02-20', time: '10:00 AM', doctor: 'Dr. Smith' },
+    { id: 2, test: 'X-Ray', date: '2024-02-25', time: '2:30 PM', doctor: 'Dr. Johnson' }
+  ];
+
+  const recentReports = [
+    { id: 1, name: 'Blood Test Report', date: '2024-02-01', status: 'Completed' },
+    { id: 2, name: 'Urine Analysis', date: '2024-01-25', status: 'Pending' }
   ];
 
   return (
@@ -151,6 +161,43 @@ const PatientDashboardPage = () => {
                 </table>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Upcoming Appointments */}
+        <div className="mt-6 sm:mt-8">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow overflow-hidden">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+              <FaCalendarCheck className="mr-2 text-indigo-600" />
+              Upcoming Appointments
+            </h2>
+            <div className="space-y-4">
+              {upcomingAppointments.map(appointment => (
+                <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">{appointment.test}</h3>
+                    <p className="text-sm text-gray-600">
+                      {appointment.date} at {appointment.time}
+                    </p>
+                    <p className="text-sm text-gray-600">{appointment.doctor}</p>
+                  </div>
+                  <button className="text-indigo-600 hover:text-indigo-800">
+                    View Details
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Reports */}
+        <div className="mt-6 sm:mt-8">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow overflow-hidden">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+              <FaFileAlt className="mr-2 text-indigo-600" />
+              Recent Reports
+            </h2>
+            
           </div>
         </div>
       </div>
