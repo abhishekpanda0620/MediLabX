@@ -4,7 +4,7 @@ import AuthGuard from './components/AuthGuard';
 
 function App() {
   // This should come from your auth context/state
-  const userRole = 'lab'; // Could be 'admin', 'doctor', 'lab', 'patient'
+  const userRole = 'admin'; // Could be 'admin', 'doctor', 'lab', 'patient'
 
   const getAllowedRoutes = () => {
     const roleRoutes = protectedRoutes[userRole] || [];

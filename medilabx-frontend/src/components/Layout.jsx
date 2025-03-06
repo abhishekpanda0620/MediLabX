@@ -8,7 +8,7 @@ const Layout = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
   const isAuthenticated = true;
-
+  const userRole = 'admin'; // 'patient', 'admin', 'doctor', 'lab'
   // Don't show sidebar on home page or when not authenticated
   const shouldShowSidebar = isAuthenticated && location.pathname !== '/';
 
@@ -129,7 +129,7 @@ const Layout = ({ children }) => {
           <Sidebar 
             isCollapsed={isSidebarCollapsed}
             toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            userRole="lab" // pass current user's role here (e.g., 'patient', 'admin', 'doctor', 'lab')
+            userRole={userRole} // pass current user's role here (e.g., 'patient', 'admin', 'doctor', 'lab')
           />
         )}
 
