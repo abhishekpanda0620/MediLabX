@@ -6,10 +6,30 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_PASSWORD: root
       MYSQL_DATABASE: medilabx
+    command: --bind-address=0.0.0.0  
     ports:
       - "3306:3306"
+    networks:
+      - medilabx-network
     volumes:
       - mysql-data:/var/lib/mysql
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    restart: always
+    ports:
+      - "9002:80"
+    networks:
+      - medilabx-network
+
 volumes:
   mysql-data:
+
+networks:
+  medilabx-network:
+    driver: bridge
