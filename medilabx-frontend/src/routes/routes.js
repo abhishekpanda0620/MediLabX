@@ -31,30 +31,39 @@ export const publicRoutes = [
 
 export const protectedRoutes = {
   patient: [
-    { path: '/dashboard', element: PatientDashboard },
-    { path: '/appointments', element: Appointments },
-    { path: '/my-reports', element: MyReports },
-    { path: '/profile', element: Profile },
+    { path: '/patient/dashboard', element: PatientDashboard },
+    { path: '/patient/appointments', element: Appointments },
+    { path: '/patient/my-reports', element: MyReports },
+    { path: '/patient/profile', element: Profile },
+    { path: '/patient/test-bookings', element: TestCatalog },  // NEW
+    { path: '/patient/billing-history', element: BillingManagement }, // NEW
   ],
   admin: [
-    { path: '/admin', element: AdminDashboard },
+    { path: '/admin/dashboard', element: AdminDashboard },
     { path: '/admin/staff', element: StaffManagement },
     { path: '/admin/tests', element: TestManagement },
     { path: '/admin/billing', element: BillingManagement },
+    { path: '/admin/lab-tests', element: TestCatalog }, // NEW
+    { path: '/admin/reports', element: ReportGeneration }, // NEW
   ],
   doctor: [
     { path: '/doctor', element: DoctorDashboard },
     { path: '/doctor/patients', element: PatientManagement },
     { path: '/doctor/reports', element: ReportGeneration },
+    { path: '/doctor/appointments', element: Appointments }, // NEW
+    { path: '/doctor/prescriptions', element: ReportGeneration }, // Placeholder for prescription writing
   ],
   lab: [
     { path: '/lab', element: LabDashboard },
     { path: '/lab/samples', element: SampleManagement },
     { path: '/tests', element: TestCatalog },
     { path: '/lab/reports', element: LabReports },
+    { path: '/lab/pending-tests', element: SampleManagement }, // NEW
+    { path: '/lab/completed-tests', element: LabReports }, // NEW
   ],
   common: [
     { path: '/settings', element: Settings },
     { path: '/notifications', element: Notifications },
   ],
 };
+

@@ -20,6 +20,7 @@ const TestCatalog = () => {
       icon: '📷'
     }
   ];
+  const [selectedTest, setSelectedTest] = useState([]);
 
   return (
     <Layout>

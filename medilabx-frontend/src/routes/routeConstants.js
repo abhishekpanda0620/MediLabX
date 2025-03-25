@@ -5,13 +5,13 @@ export const ROUTES = {
   SIGN_UP: '/signup',
 
   // Protected Routes - Patient
-  DASHBOARD: '/dashboard',
-  APPOINTMENTS: '/appointments',
-  MY_REPORTS: '/my-reports',
-  MY_PROFILE: '/profile',
+  PATIENT_DASHBOARD: '/patient/dashboard',
+  PATIENT_APPOINTMENTS: '/patient/appointments',
+  PATIENT_REPORTS: '/patient/my-reports',
+  PATIENT_PROFILE: '/patient/profile',
 
   // Protected Routes - Admin
-  ADMIN_DASHBOARD: '/admin',
+  ADMIN_DASHBOARD: '/admin/dashboard',
   STAFF_MANAGEMENT: '/admin/staff',
   TEST_MANAGEMENT: '/admin/tests',
   BILLING_MANAGEMENT: '/admin/billing',

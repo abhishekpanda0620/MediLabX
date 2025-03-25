@@ -1,14 +1,13 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/authContext"; // Custom hook to check auth
 
-const AuthGuard = ({ children }) => {
-  // Check if user is authenticated (you can modify this based on your auth implementation)
-  const isAuthenticated =true
-//    localStorage.getItem('token');
+const AuthGuard = ({ children, allowedRoles = [] }) => {
+  const { user } = useAuth() || {}; // Prevents destructuring error
 
-  if (!isAuthenticated) {
-    // Redirect to signin if not authenticated
-    return <Navigate to="/signin" replace />;
-  }
+  console.log("User in AuthGuard:", user);
+
+  if (!user || !user.role) return <Navigate to="/signin" replace />; // Redirect if not logged in
+  if (!allowedRoles.includes(user.role)) return <Navigate to="/unauthorized" replace />;
 
   return children;
 };

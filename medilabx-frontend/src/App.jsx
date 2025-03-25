@@ -1,10 +1,14 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { publicRoutes, protectedRoutes } from './routes/routes';
 import AuthGuard from './components/AuthGuard';
+import { useAuth } from './context/authContext';
 
 function App() {
   // This should come from your auth context/state
-  const userRole = 'admin'; // Could be 'admin', 'doctor', 'lab', 'patient'
+  const { user } = useAuth();
+  console.log("User in App:", user);
+  const userRole = user?.role; // This will be undefined if not logged in
+  console.log("UserRole in App:", userRole);
 
   const getAllowedRoutes = () => {
     const roleRoutes = protectedRoutes[userRole] || [];
@@ -26,11 +30,11 @@ function App() {
             key={path}
             path={path}
             element={
-              <AuthGuard>
-                <Element />
-              </AuthGuard>
-            }
-          />
+            <AuthGuard allowedRoles={[userRole]}>
+              <Element />
+            </AuthGuard>
+          }
+        />
         ))}
       </Routes>
     </Router>
