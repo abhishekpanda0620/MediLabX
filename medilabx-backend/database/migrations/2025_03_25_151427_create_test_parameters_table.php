@@ -17,6 +17,13 @@ return new class extends Migration
             $table->string('parameter_name'); // Example: Hemoglobin, WBC Count
             $table->string('unit'); // g/dL, mg/dL
             $table->string('normal_range'); // Example: "13.0 - 17.0"
+            $table->text('description')->nullable(); // Description of the parameter
+            $table->json('reference_ranges')->nullable(); // Age/gender specific ranges
+            $table->string('critical_low')->nullable(); // Critical low value
+            $table->string('critical_high')->nullable(); // Critical high value
+            $table->text('interpretation_guide')->nullable(); // Guide for interpreting results
+            $table->string('method')->nullable(); // Testing method used
+            $table->string('instrument')->nullable(); // Equipment/instrument used
             $table->timestamps();
         });
     }

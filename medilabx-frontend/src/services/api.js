@@ -61,13 +61,63 @@ export const getAllTests = async () => {
 
 // Create a new test template
 export const createTest = async (testData) => {
-  const response = await api.post("/test-template", testData);
+  const data = {
+    name: testData.name,
+    description: testData.description,
+    category: testData.category,
+    code: testData.code,
+    turn_around_time: testData.turn_around_time,
+    specimen_requirements: testData.specimen_requirements,
+    preparation_instructions: testData.preparation_instructions,
+    price: testData.price,
+    fasting_required: testData.fasting_required || false,
+    fasting_duration: testData.fasting_duration,
+    parameters: testData.parameters.map(param => ({
+      parameter_name: param.parameter_name,
+      unit: param.unit,
+      normal_range: param.normal_range,
+      description: param.description,
+      reference_ranges: param.reference_ranges,
+      critical_low: param.critical_low,
+      critical_high: param.critical_high,
+      interpretation_guide: param.interpretation_guide,
+      method: param.method,
+      instrument: param.instrument
+    }))
+  };
+  
+  const response = await api.post("/test-template", data);
   return response.data;
 };
 
 // Update an existing test template
 export const updateTest = async (testId, testData) => {
-  const response = await api.put(`/test-template/${testId}`, testData);
+  const data = {
+    name: testData.name,
+    description: testData.description,
+    category: testData.category,
+    code: testData.code,
+    turn_around_time: testData.turn_around_time,
+    specimen_requirements: testData.specimen_requirements,
+    preparation_instructions: testData.preparation_instructions,
+    price: testData.price,
+    fasting_required: testData.fasting_required || false,
+    fasting_duration: testData.fasting_duration,
+    parameters: testData.parameters.map(param => ({
+      parameter_name: param.parameter_name,
+      unit: param.unit,
+      normal_range: param.normal_range,
+      description: param.description,
+      reference_ranges: param.reference_ranges,
+      critical_low: param.critical_low,
+      critical_high: param.critical_high,
+      interpretation_guide: param.interpretation_guide,
+      method: param.method,
+      instrument: param.instrument
+    }))
+  };
+
+  const response = await api.put(`/test-template/${testId}`, data);
   return response.data;
 };
 
