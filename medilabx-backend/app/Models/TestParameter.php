@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TestParameter extends Model
 {
-    protected $fillable = ['parameter_name', 'unit', 'normal_range'];
+    protected $fillable = ['parameter_name', 'unit', 'normal_range', 'test_id'];
 
     public function test()
     {

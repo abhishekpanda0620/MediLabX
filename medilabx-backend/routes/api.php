@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\LabTechnicianController;
 use App\Http\Controllers\PathologistController;
+use App\Http\Controllers\TestController;
 use App\Http\Controllers\TestBookingController;
 use App\Http\Controllers\ReportController;
 
@@ -24,10 +25,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('lab-technicians', LabTechnicianController::class);
     Route::apiResource('pathologists', PathologistController::class);
 
+    // Test Templates routes
+    Route::get('/test-templates', [TestController::class, 'getAllTestTemplates']);
+    Route::get('/test-template/{id}', [TestController::class, 'getTestTemplate']);
+    Route::post('/test-template', [TestController::class, 'createTestTemplate']);
+    Route::put('/test-template/{id}', [TestController::class, 'updateTestTemplate']);
+    Route::delete('/test-template/{id}', [TestController::class, 'deleteTestTemplate']);
+
     // Test-related routes
     Route::apiResource('test-bookings', TestBookingController::class);
     Route::apiResource('reports', ReportController::class);
-    Route::get('/test-template/{id}', [TestController::class, 'getTestTemplate']);
-
-
 });

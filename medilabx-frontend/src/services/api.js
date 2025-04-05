@@ -55,7 +55,25 @@ export const getAllUsers = async () => {
 /* =================== 🔹 TESTS API 🔹 =================== */
 // Get list of all available tests
 export const getAllTests = async () => {
-  const response = await api.get("/tests");
+  const response = await api.get("/test-templates");
+  return response.data;
+};
+
+// Create a new test template
+export const createTest = async (testData) => {
+  const response = await api.post("/test-template", testData);
+  return response.data;
+};
+
+// Update an existing test template
+export const updateTest = async (testId, testData) => {
+  const response = await api.put(`/test-template/${testId}`, testData);
+  return response.data;
+};
+
+// Delete a test template
+export const deleteTest = async (testId) => {
+  const response = await api.delete(`/test-template/${testId}`);
   return response.data;
 };
 
