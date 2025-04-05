@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 
-const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {} }) => {
+const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {}, categories = [] }) => {
   const [testData, setTestData] = useState({
     name: '',
     description: '',
@@ -121,8 +121,7 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {} }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Category*
               </label>
-              <input
-                type="text"
+              <select
                 name="category"
                 value={testData.category}
                 onChange={handleInputChange}
@@ -130,7 +129,15 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {} }) => {
                   validationErrors.category ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
-              />
+              >
+                <option value="">Select Category</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+              {validationErrors.category && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.category[0]}</p>
+              )}
             </div>
 
             <div>
@@ -148,17 +155,23 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {} }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price
+                Price (₹)*
               </label>
               <input
                 type="number"
                 name="price"
                 value={testData.price}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-lg border-gray-300"
+                className={`w-full px-3 py-2 border rounded-lg ${
+                  validationErrors.price ? 'border-red-500' : 'border-gray-300'
+                }`}
                 min="0"
                 step="0.01"
+                required
               />
+              {validationErrors.price && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.price[0]}</p>
+              )}
             </div>
           </div>
 

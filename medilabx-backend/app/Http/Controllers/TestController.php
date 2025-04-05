@@ -11,6 +11,18 @@ use Exception;
 
 class TestController extends Controller
 {
+    public function getCategories()
+    {
+        try {
+            return response()->json(['categories' => Test::getCategories()]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch test categories',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getAllTestTemplates()
     {
         try {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaTimes, FaClock, FaFlask, FaList, FaMoneyBill, FaUtensils } from 'react-icons/fa';
+import { formatPrice, formatDateTime } from '../../utils/formatters';
 
 const ViewTestModal = ({ isOpen, onClose, test }) => {
   const [selectedParameter, setSelectedParameter] = useState(null);
@@ -50,7 +51,7 @@ const ViewTestModal = ({ isOpen, onClose, test }) => {
                 </div>
                 <div className="flex items-center text-gray-600">
                   <FaMoneyBill className="mr-2" />
-                  <span>Price: {test.formatted_price}</span>
+                  <span>Price: {formatPrice(test.price)}</span>
                 </div>
               </div>
             </div>
@@ -68,14 +69,14 @@ const ViewTestModal = ({ isOpen, onClose, test }) => {
             <h3 className="text-lg font-semibold mb-4">Parameters</h3>
             <div className="bg-gray-50 rounded-lg">
               {test.parameters.map((param, index) => (
-                <div 
+                <div
                   key={param.id || index}
                   className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
                   onClick={() => setSelectedParameter(param)}
                 >
                   <div className="font-medium text-gray-800">{param.parameter_name}</div>
                   <div className="text-sm text-gray-600 mt-1">
-                    Normal Range: {param.formatted_range}
+                    Normal Range: {param.normal_range}
                   </div>
                 </div>
               ))}

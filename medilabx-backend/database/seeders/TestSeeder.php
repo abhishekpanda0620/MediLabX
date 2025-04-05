@@ -13,19 +13,19 @@ class TestSeeder extends Seeder
         // Complete Blood Count (CBC)
         $cbc = Test::create([
             'name' => 'Complete Blood Count (CBC)',
-            'category' => 'Hematology',
+            'category' => 'Haematology',
             'code' => 'CBC001',
-            'description' => 'A blood test used to evaluate your overall health and detect a wide range of disorders.',
+            'description' => 'A comprehensive blood test to evaluate overall health and detect various disorders.',
             'turn_around_time' => 24,
             'specimen_requirements' => 'EDTA whole blood - Purple top tube (3-5ml)',
             'preparation_instructions' => 'No special preparation required.',
-            'price' => 45.00,
+            'price' => 550.00, // Price in INR
             'fasting_required' => false
         ]);
 
         $cbcParameters = [
             [
-                'parameter_name' => 'Hemoglobin',
+                'parameter_name' => 'Haemoglobin',
                 'unit' => 'g/dL',
                 'normal_range' => '13.0 - 17.0',
                 'description' => 'Protein in red blood cells that carries oxygen',
@@ -36,7 +36,7 @@ class TestSeeder extends Seeder
                     ['gender' => 'male', 'range' => '13.0 - 17.0'],
                     ['gender' => 'female', 'range' => '12.0 - 15.5']
                 ]),
-                'interpretation_guide' => 'Low levels may indicate anemia. High levels may indicate polycythemia.'
+                'interpretation_guide' => 'Low levels may indicate anaemia. High levels may indicate polycythaemia.'
             ],
             [
                 'parameter_name' => 'White Blood Cells',
@@ -67,13 +67,13 @@ class TestSeeder extends Seeder
         // Lipid Profile
         $lipid = Test::create([
             'name' => 'Lipid Profile',
-            'category' => 'Biochemistry',
+            'category' => 'Clinical Biochemistry',
             'code' => 'LIP001',
-            'description' => 'A blood test that measures the levels of fats (lipids) in your blood.',
+            'description' => 'Blood test that measures lipids to assess cardiovascular health.',
             'turn_around_time' => 24,
             'specimen_requirements' => 'Serum - Red top tube (5ml)',
             'preparation_instructions' => 'Fast for 12-14 hours before the test. Only water is permitted.',
-            'price' => 65.00,
+            'price' => 800.00, // Price in INR
             'fasting_required' => true,
             'fasting_duration' => 12
         ]);
@@ -124,13 +124,13 @@ class TestSeeder extends Seeder
         // Thyroid Function Test (TFT)
         $tft = Test::create([
             'name' => 'Thyroid Function Test (TFT)',
-            'category' => 'Endocrinology',
+            'category' => 'Clinical Biochemistry',
             'code' => 'TFT001',
-            'description' => 'A blood test that checks how well your thyroid gland is working.',
+            'description' => 'Comprehensive thyroid function assessment.',
             'turn_around_time' => 48,
             'specimen_requirements' => 'Serum - Red top tube (3-5ml)',
-            'preparation_instructions' => 'No special preparation required. However, inform your doctor about any medications.',
-            'price' => 85.00,
+            'preparation_instructions' => 'Early morning sample preferred. Inform about thyroid medications.',
+            'price' => 1200.00, // Price in INR
             'fasting_required' => false
         ]);
 
@@ -169,6 +169,184 @@ class TestSeeder extends Seeder
 
         foreach ($tftParameters as $param) {
             TestParameter::create(array_merge($param, ['test_id' => $tft->id]));
+        }
+
+        // HbA1c Test
+        $hba1c = Test::create([
+            'name' => 'Glycated Haemoglobin (HbA1c)',
+            'category' => 'Clinical Biochemistry',
+            'code' => 'HBA001',
+            'description' => 'Measures average blood sugar levels over past 2-3 months.',
+            'turn_around_time' => 24,
+            'specimen_requirements' => 'EDTA whole blood - Purple top tube (3ml)',
+            'preparation_instructions' => 'No fasting required.',
+            'price' => 650.00, // Price in INR
+            'fasting_required' => false
+        ]);
+
+        $hba1cParameters = [
+            [
+                'parameter_name' => 'HbA1c',
+                'unit' => '%',
+                'normal_range' => '4.0 - 5.6',
+                'description' => 'Glycated Haemoglobin',
+                'critical_high' => '9.0',
+                'method' => 'HPLC',
+                'interpretation_guide' => 'Values between 5.7-6.4% indicate prediabetes. Values ≥6.5% indicate diabetes.'
+            ],
+            [
+                'parameter_name' => 'eAG (Estimated Average Glucose)',
+                'unit' => 'mg/dL',
+                'normal_range' => '70 - 126',
+                'description' => 'Estimated Average Glucose calculated from HbA1c',
+                'method' => 'Calculation',
+                'interpretation_guide' => 'Provides estimated average blood glucose over past 2-3 months'
+            ]
+        ];
+
+        foreach ($hba1cParameters as $param) {
+            TestParameter::create(array_merge($param, ['test_id' => $hba1c->id]));
+        }
+
+        // Liver Function Test
+        $lft = Test::create([
+            'name' => 'Liver Function Test (LFT)',
+            'category' => 'Clinical Biochemistry',
+            'code' => 'LFT001',
+            'description' => 'Comprehensive assessment of liver function.',
+            'turn_around_time' => 24,
+            'specimen_requirements' => 'Serum - Red top tube (5ml)',
+            'preparation_instructions' => 'Overnight fasting required (8-12 hours).',
+            'price' => 900.00, // Price in INR
+            'fasting_required' => true,
+            'fasting_duration' => 8
+        ]);
+
+        $lftParameters = [
+            [
+                'parameter_name' => 'Total Bilirubin',
+                'unit' => 'mg/dL',
+                'normal_range' => '0.3 - 1.2',
+                'description' => 'Measures total bilirubin levels',
+                'critical_high' => '15.0',
+                'method' => 'Colorimetry',
+                'interpretation_guide' => 'Elevated levels may indicate liver disease or bile duct obstruction'
+            ],
+            [
+                'parameter_name' => 'SGPT (ALT)',
+                'unit' => 'U/L',
+                'normal_range' => '7 - 55',
+                'description' => 'Alanine Aminotransferase',
+                'critical_high' => '1000',
+                'method' => 'UV Kinetic',
+                'interpretation_guide' => 'Elevated in liver cell injury'
+            ],
+            [
+                'parameter_name' => 'SGOT (AST)',
+                'unit' => 'U/L',
+                'normal_range' => '8 - 48',
+                'description' => 'Aspartate Aminotransferase',
+                'critical_high' => '1000',
+                'method' => 'UV Kinetic',
+                'interpretation_guide' => 'Elevated in liver cell injury and cardiac conditions'
+            ],
+            [
+                'parameter_name' => 'Alkaline Phosphatase',
+                'unit' => 'U/L',
+                'normal_range' => '40 - 129',
+                'description' => 'ALP enzyme levels',
+                'critical_high' => '500',
+                'method' => 'pNPP-AMP',
+                'interpretation_guide' => 'Elevated in bone and liver diseases'
+            ],
+            [
+                'parameter_name' => 'Total Proteins',
+                'unit' => 'g/dL',
+                'normal_range' => '6.0 - 8.3',
+                'description' => 'Total protein levels in blood',
+                'critical_low' => '4.0',
+                'method' => 'Biuret',
+                'interpretation_guide' => 'Low levels may indicate malnutrition or liver disease'
+            ],
+            [
+                'parameter_name' => 'Albumin',
+                'unit' => 'g/dL',
+                'normal_range' => '3.5 - 5.2',
+                'description' => 'Major protein in blood',
+                'critical_low' => '2.0',
+                'method' => 'BCG',
+                'interpretation_guide' => 'Low levels may indicate liver disease or malnutrition'
+            ]
+        ];
+
+        foreach ($lftParameters as $param) {
+            TestParameter::create(array_merge($param, ['test_id' => $lft->id]));
+        }
+
+        // Vitamin D Test
+        $vitD = Test::create([
+            'name' => 'Vitamin D (25-OH)',
+            'category' => 'Clinical Biochemistry',
+            'code' => 'VITD001',
+            'description' => 'Measures Vitamin D levels in blood.',
+            'turn_around_time' => 48,
+            'specimen_requirements' => 'Serum - Red top tube (3ml)',
+            'preparation_instructions' => 'No special preparation required.',
+            'price' => 1500.00, // Price in INR
+            'fasting_required' => false
+        ]);
+
+        $vitDParameters = [
+            [
+                'parameter_name' => '25-OH Vitamin D',
+                'unit' => 'ng/mL',
+                'normal_range' => '30 - 100',
+                'description' => '25-Hydroxyvitamin D',
+                'critical_low' => '10',
+                'critical_high' => '150',
+                'method' => 'CLIA',
+                'interpretation_guide' => 'Levels <20: Deficient, 21-29: Insufficient, 30-100: Sufficient, >100: Potential toxicity'
+            ]
+        ];
+
+        foreach ($vitDParameters as $param) {
+            TestParameter::create(array_merge($param, ['test_id' => $vitD->id]));
+        }
+
+        // COVID-19 RT-PCR
+        $covid = Test::create([
+            'name' => 'COVID-19 RT-PCR',
+            'category' => 'Molecular Diagnostics',
+            'code' => 'COV001',
+            'description' => 'Detection of SARS-CoV-2 virus.',
+            'turn_around_time' => 24,
+            'specimen_requirements' => 'Nasopharyngeal and Oropharyngeal swabs',
+            'preparation_instructions' => 'Avoid eating, drinking, or smoking 30 minutes before sample collection.',
+            'price' => 700.00, // Price in INR as per govt guidelines
+            'fasting_required' => false
+        ]);
+
+        $covidParameters = [
+            [
+                'parameter_name' => 'SARS-CoV-2',
+                'unit' => 'NA',
+                'normal_range' => 'Not Detected',
+                'description' => 'Detection of SARS-CoV-2 viral RNA',
+                'method' => 'RT-PCR',
+                'interpretation_guide' => 'Detected: Positive for COVID-19, Not Detected: Negative for COVID-19'
+            ],
+            [
+                'parameter_name' => 'CT Value',
+                'unit' => 'Cycles',
+                'normal_range' => 'NA',
+                'description' => 'Cycle threshold value',
+                'method' => 'RT-PCR',
+                'interpretation_guide' => 'Lower CT values indicate higher viral load'
+            ]
+        ];
+
+        foreach ($covidParameters as $param) {
+            TestParameter::create(array_merge($param, ['test_id' => $covid->id]));
         }
     }
 }

@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/test-template/{id}', [TestController::class, 'deleteTestTemplate']);
 
     // Test-related routes
+    Route::get('/test-categories', [TestController::class, 'getCategories']);
     Route::apiResource('test-bookings', TestBookingController::class);
     Route::apiResource('reports', ReportController::class);
 });

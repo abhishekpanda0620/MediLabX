@@ -53,6 +53,12 @@ export const getAllUsers = async () => {
 };
 
 /* =================== 🔹 TESTS API 🔹 =================== */
+// Get list of all test categories
+export const getCategories = async () => {
+  const response = await api.get("/test-categories");
+  return response.data.categories;
+};
+
 // Get list of all available tests
 export const getAllTests = async () => {
   const response = await api.get("/test-templates");

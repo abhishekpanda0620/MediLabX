@@ -47,8 +47,7 @@ class Test extends Model
 
     public function getFormattedPriceAttribute()
     {
-        if (!$this->price) return null;
-        return '$' . number_format($this->price, 2);
+        return '₹' . number_format($this->price, 2);
     }
 
     public function getFormattedTurnAroundTimeAttribute()
@@ -81,17 +80,33 @@ class Test extends Model
     public function getCategoryColorAttribute()
     {
         $colors = [
-            'Hematology' => 'red',
-            'Biochemistry' => 'blue',
-            'Microbiology' => 'green',
-            'Immunology' => 'yellow',
-            'Endocrinology' => 'purple',
-            'Serology' => 'pink',
-            'Urinalysis' => 'orange',
-            'Imaging' => 'indigo'
+            'Haematology' => 'red',
+            'Clinical Biochemistry' => 'blue',
+            'Clinical Pathology' => 'green',
+            'Clinical Microbiology' => 'yellow',
+            'Histopathology' => 'purple',
+            'Cytology' => 'pink',
+            'Serology & Immunology' => 'orange',
+            'Molecular Diagnostics' => 'indigo',
+            'Radio Diagnostics' => 'teal'
         ];
 
         return $colors[$this->category] ?? 'gray';
+    }
+
+    public static function getCategories()
+    {
+        return [
+            'Haematology',
+            'Clinical Biochemistry',
+            'Clinical Pathology',
+            'Clinical Microbiology',
+            'Histopathology',
+            'Cytology',
+            'Serology & Immunology',
+            'Molecular Diagnostics',
+            'Radio Diagnostics'
+        ];
     }
 
     public function getFullDetailsAttribute()
