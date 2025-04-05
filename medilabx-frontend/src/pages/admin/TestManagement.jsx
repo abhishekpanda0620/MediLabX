@@ -111,7 +111,7 @@ const TestManagement = () => {
               clearErrors();
               setIsAddModalOpen(true);
             }}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full lg:w-auto justify-center"
+            className="flex cursor-pointer items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full lg:w-auto justify-center"
           >
             <FaPlus className="mr-2" />
             Add New Test
@@ -130,7 +130,7 @@ const TestManagement = () => {
               <input
                 type="text"
                 placeholder="Search tests..."
-                className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                className="w-full pl-10 pr-4 py-2 outline-none border-[1.5px] rounded-lg"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -153,7 +153,7 @@ const TestManagement = () => {
                         setSelectedTest(test);
                         setIsViewModalOpen(true);
                       }}
-                      className="text-indigo-600 hover:text-indigo-900"
+                      className="text-indigo-600 text-xl hover:text-indigo-900"
                     >
                       <FaEye />
                     </button>
