@@ -6,6 +6,7 @@ import EditTestModal from '../../components/test/EditTestModal';
 import DeleteTestModal from '../../components/test/DeleteTestModal';
 import ViewTestModal from '../../components/test/ViewTestModal';
 import { getAllTests, createTest, updateTest, deleteTest } from '../../services/api';
+import TableWrapper from '../../components/common/TableWrapper';
 
 const TestManagement = () => {
   const [tests, setTests] = useState([]);
@@ -103,14 +104,14 @@ const TestManagement = () => {
   return (
     <Layout>
       <div className="p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold text-gray-800">Test Management</h1>
           <button 
             onClick={() => {
               clearErrors();
               setIsAddModalOpen(true);
             }}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full sm:w-auto justify-center"
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full lg:w-auto justify-center"
           >
             <FaPlus className="mr-2" />
             Add New Test
@@ -137,118 +138,110 @@ const TestManagement = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            {/* Mobile View */}
-            <div className="sm:hidden">
-              {filteredTests.map((test) => (
-                <div key={test.id} className="p-4 border-b border-gray-200">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-medium text-gray-900">{test.name}</h3>
-                      <span className="inline-block mt-1 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                        {test.parameters.length} parameters
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedTest(test);
-                          setIsViewModalOpen(true);
-                        }}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        <FaEye />
-                      </button>
-                      <button
-                        onClick={() => {
-                          clearErrors();
-                          setSelectedTest(test);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => {
-                          clearErrors();
-                          setSelectedTest(test);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
+          {/* Mobile View */}
+          <div className="block lg:hidden">
+            {filteredTests.map((test) => (
+              <div key={test.id} className="bg-white rounded-lg shadow-sm mb-4 p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-medium text-gray-900">{test.name}</h3>
+                    <p className="text-sm text-gray-500">{test.parameters.length} parameters</p>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    Updated {new Date(test.updated_at).toLocaleDateString()}
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        setSelectedTest(test);
+                        setIsViewModalOpen(true);
+                      }}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      <FaEye />
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearErrors();
+                        setSelectedTest(test);
+                        setIsEditModalOpen(true);
+                      }}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearErrors();
+                        setSelectedTest(test);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <FaTrash />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="text-sm text-gray-500">
+                  Updated {new Date(test.updated_at).toLocaleDateString()}
+                </div>
+              </div>
+            ))}
+          </div>
 
-            {/* Desktop View */}
-            <table className="hidden sm:table min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parameters</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Updated At</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTests.map((test) => (
-                  <tr key={test.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">{test.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-sm rounded-full bg-blue-100 text-blue-800">
-                        {test.parameters.length} parameters
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(test.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(test.updated_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        onClick={() => {
-                          setSelectedTest(test);
-                          setIsViewModalOpen(true);
-                        }}
-                        className="text-indigo-600 hover:text-indigo-900 mr-3"
-                      >
-                        <FaEye />
-                      </button>
-                      <button 
-                        onClick={() => {
-                          clearErrors();
-                          setSelectedTest(test);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="text-indigo-600 hover:text-indigo-900 mr-3"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button 
-                        onClick={() => {
-                          clearErrors();
-                          setSelectedTest(test);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <FaTrash />
-                      </button>
-                    </td>
+          {/* Desktop View */}
+          <div className="hidden lg:block">
+            <TableWrapper>
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parameters</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredTests.map((test) => (
+                    <tr key={test.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">{test.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{test.parameters.length}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{new Date(test.created_at).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{new Date(test.updated_at).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button
+                          onClick={() => {
+                            setSelectedTest(test);
+                            setIsViewModalOpen(true);
+                          }}
+                          className="text-indigo-600 hover:text-indigo-900 mr-3"
+                        >
+                          <FaEye />
+                        </button>
+                        <button
+                          onClick={() => {
+                            clearErrors();
+                            setSelectedTest(test);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="text-indigo-600 hover:text-indigo-900 mr-3"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => {
+                            clearErrors();
+                            setSelectedTest(test);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <FaTrash />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableWrapper>
           </div>
         </div>
       </div>

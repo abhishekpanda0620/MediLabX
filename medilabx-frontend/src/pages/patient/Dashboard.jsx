@@ -2,6 +2,7 @@ import React from 'react';
 import Layout from '../../components/Layout';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { FaFileAlt, FaCalendarCheck, FaClipboardList, FaBell } from 'react-icons/fa';
+import TableWrapper from '../../components/common/TableWrapper';
 
 const PatientDashboardPage = () => {
   // Test history data
@@ -40,6 +41,10 @@ const PatientDashboardPage = () => {
   const recentReports = [
     { id: 1, name: 'Blood Test Report', date: '2024-02-01', status: 'Completed' },
     { id: 2, name: 'Urine Analysis', date: '2024-01-25', status: 'Pending' }
+  ];
+
+  const recentTests = [
+    { id: 1, name: 'Blood Test', date: '2025-02-25', status: 'Completed' },
   ];
 
   return (
@@ -137,29 +142,54 @@ const PatientDashboardPage = () => {
         <div className="mt-6 sm:mt-8">
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow overflow-hidden">
             <h2 className="text-lg sm:text-xl font-semibold mb-4">Recent Tests</h2>
-            <div className="overflow-x-auto -mx-4 sm:-mx-6">
-              <div className="inline-block min-w-full align-middle">
-                <table className="min-w-full divide-y divide-gray-300">
+            
+            {/* Mobile View */}
+            <div className="block sm:hidden space-y-4">
+              {recentTests.map((test) => (
+                <div key={test.id} className="bg-gray-50 p-4 rounded-lg">
+                  <div className="font-medium text-gray-900 mb-1">{test.name}</div>
+                  <div className="text-sm text-gray-500 mb-2">{test.date}</div>
+                  <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                    test.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                    test.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {test.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden sm:block">
+              <TableWrapper>
+                <table className="min-w-full divide-y divide-gray-200">
                   <thead>
                     <tr>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-900">Test Name</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-900">Date</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-900">Status</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test Name</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-4 sm:px-6 py-3 text-xs sm:text-sm text-gray-900">Blood Test</td>
-                      <td className="px-4 sm:px-6 py-3 text-xs sm:text-sm text-gray-500">2025-02-25</td>
-                      <td className="px-4 sm:px-6 py-3">
-                        <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold text-green-800">
-                          Completed
-                        </span>
-                      </td>
-                    </tr>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recentTests.map((test) => (
+                      <tr key={test.id}>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{test.name}</td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{test.date}</td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                            test.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                            test.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {test.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
-              </div>
+              </TableWrapper>
             </div>
           </div>
         </div>
