@@ -11,9 +11,14 @@ function App() {
   console.log("UserRole in App:", userRole);
 
   const getAllowedRoutes = () => {
+    console.log("Fetching routes for role:", userRole);
     const roleRoutes = protectedRoutes[userRole] || [];
+    console.log("Role-specific routes:", roleRoutes);
     const commonRoutes = protectedRoutes.common || [];
-    return [...roleRoutes, ...commonRoutes];
+    console.log("Common routes:", commonRoutes);
+    const allowedRoutes = [...roleRoutes, ...commonRoutes];
+    console.log("Final allowed routes:", allowedRoutes);
+    return allowedRoutes;
   };
 
   return (

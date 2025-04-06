@@ -53,7 +53,7 @@ export const protectedRoutes = {
     { path: '/doctor/appointments', element: Appointments }, // NEW
     { path: '/doctor/prescriptions', element: ReportGeneration }, // Placeholder for prescription writing
   ],
-  lab: [
+  lab_technician: [
     { path: '/lab', element: LabDashboard },
     { path: '/lab/samples', element: SampleManagement },
     { path: '/tests', element: TestCatalog },

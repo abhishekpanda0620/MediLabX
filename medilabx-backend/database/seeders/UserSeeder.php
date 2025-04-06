@@ -4,23 +4,39 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
     public function run()
     {
-        // Define roles
-        $roles = ['admin', 'doctor', 'lab_technician', 'pathologist', 'patient'];
+        $defaultUsers = [
+            'admin' => [
+                'name' => 'Admin User',
+                'email' => 'admin@example.com',
+            ],
+            'doctor' => [
+                'name' => 'Doctor User',
+                'email' => 'doctor@example.com',
+            ],
+            'lab_technician' => [
+                'name' => 'Lab Technician User',
+                'email' => 'lab_technician@example.com',
+            ],
+            'pathologist' => [
+                'name' => 'Pathologist User',
+                'email' => 'pathologist@example.com',
+            ],
+            'patient' => [
+                'name' => 'Patient User',
+                'email' => 'patient@example.com',
+            ]
+        ];
 
-        foreach ($roles as $roleName) {
-            $role = Role::firstOrCreate(['name' => $roleName]);
-
-            // Create a user for each role
+        foreach ($defaultUsers as $role => $userData) {
             $user = User::create([
-                'name' => ucfirst($roleName) . ' User',
-                'email' => $roleName . '@example.com',
-                'password' => bcrypt('password'), // Default password
+                'name' => $userData['name'],
+                'email' => $userData['email'],
+                'password' => bcrypt('password'),
             ]);
 
             $user->assignRole($role);

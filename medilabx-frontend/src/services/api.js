@@ -23,8 +23,10 @@ api.interceptors.request.use((config) => {
 // Login User
 export const loginUser = async (email, password) => {
   const response = await api.post("/login", { email, password });
-  localStorage.setItem("token", response.data.token);
-  return response.data.user;
+  return {
+    token: response.data.token,
+    user: response.data.user,
+  };
 };
 
 // Register User
@@ -175,5 +177,73 @@ export const getAdminDashboardStats = async () => {
 // Manage staff (Add or remove)
 export const manageStaff = async (staffData) => {
   const response = await api.post("/admin/staff", staffData);
+  return response.data;
+};
+
+/* =================== 🔹 TEST REPORTS API 🔹 =================== */
+// Get all test reports
+export const getTestReports = async (filters = {}) => {
+  const response = await api.get("/reports", { params: filters });
+  return response.data;
+};
+
+// Create new test report
+export const createTestReport = async (testBookingId) => {
+  const response = await api.post(`/test-bookings/${testBookingId}/reports`);
+  return response.data;
+};
+
+// Submit test report
+export const submitTestReport = async (reportId, data) => {
+  const response = await api.post(`/reports/${reportId}/submit`, data);
+  return response.data;
+};
+
+// Review test report
+export const reviewTestReport = async (reportId, data) => {
+  const response = await api.post(`/reports/${reportId}/review`, data);
+  return response.data;
+};
+
+// Validate test report
+export const validateTestReport = async (reportId) => {
+  const response = await api.post(`/reports/${reportId}/validate`);
+  return response.data;
+};
+
+// Reject test report
+export const rejectTestReport = async (reportId, notes) => {
+  const response = await api.post(`/reports/${reportId}/reject`, { notes });
+  return response.data;
+};
+
+// Download test report
+export const downloadTestReport = async (reportId) => {
+  const response = await api.get(`/reports/${reportId}/download`, {
+    responseType: 'blob'
+  });
+  return response.data;
+};
+
+/* =================== 🔹 TEST RESULTS API 🔹 =================== */
+// Validate test results
+export const validateTestResults = async (reportId, results) => {
+  const response = await api.post(`/test-reports/${reportId}/validate-results`, { results });
+  return response.data;
+};
+
+// Get parameter reference ranges
+export const getParameterReferenceRanges = async (parameterId, age, gender) => {
+  const response = await api.get(`/test-parameters/${parameterId}/reference-ranges`, {
+    params: { age, gender }
+  });
+  return response.data;
+};
+
+// Get test result statistics
+export const getTestResultStatistics = async (parameterId, startDate, endDate) => {
+  const response = await api.get('/test-results/statistics', {
+    params: { parameter_id: parameterId, start_date: startDate, end_date: endDate }
+  });
   return response.data;
 };

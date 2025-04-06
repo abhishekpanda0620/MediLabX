@@ -12,6 +12,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
+    "@react-pdf/renderer": "^4.3.0",
     "@tailwindcss/vite": "^4.0.9",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",

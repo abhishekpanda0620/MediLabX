@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -9,54 +10,76 @@ class RoleSeeder extends Seeder
 {
     public function run()
     {
-        // Create roles
-        $adminRole = Role::create(['name' => 'admin']);
-        $patientRole = Role::create(['name' => 'patient']);
-        $labTechRole = Role::create(['name' => 'lab_technician']);
-        $pathologistRole = Role::create(['name' => 'pathologist']);
-        $doctorRole = Role::create(['name' => 'doctor']);
-
-        // Define permissions
+        // Create permissions
         $permissions = [
-            // Admin permissions
-            'manage users', 'manage roles', 'view all reports', 'delete any record',
-
-            // Patient permissions
-            'book test', 'view own reports',
-
-            // Lab Technician permissions
-            'collect sample', 'update test status',
-
-            // Pathologist permissions
-            'review test', 'upload report',
-
-            // Doctor permissions
-            'view patient reports', 'add medical advice'
+            // Test management permissions
+            'manage_test_catalog',
+            'view_test_catalog',
+            
+            // Test booking permissions
+            'create_test_booking',
+            'view_test_bookings',
+            'cancel_test_booking',
+            
+            // Sample collection permissions
+            'collect_samples',
+            'process_samples',
+            
+            // Report permissions
+            'create_test_report',
+            'review_test_report',
+            'validate_test_report',
+            'view_test_reports',
+            
+            // User management
+            'manage_users',
+            'manage_roles'
         ];
 
-        // Assign permissions
-        foreach ($permissions as $perm) {
-            $permission = Permission::create(['name' => $perm]);
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
 
-            if (in_array($perm, ['manage users', 'manage roles', 'view all reports', 'delete any record'])) {
-                $adminRole->givePermissionTo($permission);
-            }
+        // Define roles and their permissions
+        $roles = [
+            'admin' => [
+                'manage_test_catalog',
+                'view_test_catalog',
+                'view_test_bookings',
+                'manage_users',
+                'manage_roles'
+            ],
+            'doctor' => [
+                'view_test_catalog',
+                'create_test_booking',
+                'view_test_bookings',
+                'cancel_test_booking',
+                'view_test_reports'
+            ],
+            'lab_technician' => [
+                'view_test_catalog',
+                'view_test_bookings',
+                'collect_samples',
+                'process_samples',
+                'create_test_report'
+            ],
+            'pathologist' => [
+                'view_test_catalog',
+                'view_test_bookings',
+                'review_test_report',
+                'validate_test_report',
+                'view_test_reports'
+            ],
+            'patient' => [
+                'view_test_catalog',
+                'view_test_bookings',
+                'view_test_reports'
+            ]
+        ];
 
-            if (in_array($perm, ['book test', 'view own reports'])) {
-                $patientRole->givePermissionTo($permission);
-            }
-
-            if (in_array($perm, ['collect sample', 'update test status'])) {
-                $labTechRole->givePermissionTo($permission);
-            }
-
-            if (in_array($perm, ['review test', 'upload report'])) {
-                $pathologistRole->givePermissionTo($permission);
-            }
-
-            if (in_array($perm, ['view patient reports', 'add medical advice'])) {
-                $doctorRole->givePermissionTo($permission);
-            }
+        foreach ($roles as $roleName => $rolePermissions) {
+            $role = Role::create(['name' => $roleName]);
+            $role->givePermissionTo($rolePermissions);
         }
     }
 }

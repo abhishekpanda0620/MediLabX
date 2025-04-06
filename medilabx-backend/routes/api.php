@@ -8,6 +8,8 @@ use App\Http\Controllers\PathologistController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TestBookingController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\TestReportController;
+use App\Http\Controllers\TestResultController;
 
 // Public authentication routes
 Route::post('register', [AuthController::class, 'register']);
@@ -36,4 +38,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/test-categories', [TestController::class, 'getCategories']);
     Route::apiResource('test-bookings', TestBookingController::class);
     Route::apiResource('reports', ReportController::class);
+
+    // Report routes
+    Route::post('/reports', 'ReportController@store');
+    Route::get('/reports', 'ReportController@index');
+    Route::get('/reports/{id}', 'ReportController@show');
+    Route::get('/reports/{id}/download', 'ReportController@download');
+
+    // Test Report Routes
+    Route::get('/reports', [TestReportController::class, 'index']);
+    Route::post('/test-bookings/{testBooking}/reports', [TestReportController::class, 'store']);
+    Route::post('/reports/{testReport}/submit', [TestReportController::class, 'submit']);
+    Route::post('/reports/{testReport}/review', [TestReportController::class, 'review']);
+    Route::post('/reports/{testReport}/validate', [TestReportController::class, 'validate']);
+    Route::post('/reports/{testReport}/reject', [TestReportController::class, 'reject']);
+
+    // Test Result Routes
+    Route::post('/test-reports/{testReport}/validate-results', [TestResultController::class, 'validateResults']);
+    Route::get('/test-parameters/{parameter}/reference-ranges', [TestResultController::class, 'getParameterReferenceRanges']);
+    Route::get('/test-results/statistics', [TestResultController::class, 'calculateStatistics']);
 });

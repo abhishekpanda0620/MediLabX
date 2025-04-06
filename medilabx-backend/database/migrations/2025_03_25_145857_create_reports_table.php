@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('pathologist_id')->nullable()->constrained()->onDelete('set null');
             $table->string('test_type');
             $table->string('file_path'); // Stores the PDF report file path
+            $table->json('report_data')->nullable(); // Stores the structured report data
             $table->timestamps();
-    
         });
     }
 
