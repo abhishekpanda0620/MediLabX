@@ -11,7 +11,7 @@ class TestBookingController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // Removed middleware('auth') as it is now applied in routes/api.php
     }
 
     public function index()

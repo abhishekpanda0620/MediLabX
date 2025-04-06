@@ -1,12 +1,40 @@
-import React from 'react';
-import { FaSearch, FaEdit, FaTrash } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaSearch, FaCheck } from 'react-icons/fa';
 import Layout from '../../components/Layout';
+import { getTestBookings, markSampleCollected } from '../../services/api';
 
 const SampleManagement = () => {
-  const samples = [
-    { id: 1, sampleId: 'S123', patient: 'Alice Johnson', received: '2024-03-01' },
-    { id: 2, sampleId: 'S124', patient: 'Bob Smith', received: '2024-03-02' },
-  ];
+  const [samples, setSamples] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchSamples();
+  }, []);
+
+  const fetchSamples = async () => {
+    try {
+      setLoading(true);
+      const response = await getTestBookings({ status: 'pending' });
+      setSamples(response);
+    } catch (err) {
+      setError('Failed to fetch samples');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkCollected = async (sampleId) => {
+    try {
+      setLoading(true);
+      await markSampleCollected(sampleId);
+      fetchSamples(); // Refresh the list after marking as collected
+    } catch (err) {
+      setError('Failed to mark sample as collected');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -22,6 +50,13 @@ const SampleManagement = () => {
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </div>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 border border-red-400 rounded">
+            {error}
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -36,14 +71,15 @@ const SampleManagement = () => {
               {samples.map(sample => (
                 <tr key={sample.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">{sample.sampleId}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{sample.patient}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{sample.received}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{sample.patient.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{new Date(sample.received_at).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">
-                      <FaEdit />
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      <FaTrash />
+                    <button
+                      onClick={() => handleMarkCollected(sample.id)}
+                      className="text-green-600 hover:text-green-900"
+                      disabled={loading}
+                    >
+                      <FaCheck />
                     </button>
                   </td>
                 </tr>

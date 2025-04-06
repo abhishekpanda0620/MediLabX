@@ -181,9 +181,9 @@ export const manageStaff = async (staffData) => {
 };
 
 /* =================== 🔹 TEST REPORTS API 🔹 =================== */
-// Get all test reports
+// Get reports for a patient or lab technician
 export const getTestReports = async (filters = {}) => {
-  const response = await api.get("/reports", { params: filters });
+  const response = await api.get('/reports', { params: filters });
   return response.data;
 };
 
@@ -199,29 +199,29 @@ export const submitTestReport = async (reportId, data) => {
   return response.data;
 };
 
-// Review test report
-export const reviewTestReport = async (reportId, data) => {
-  const response = await api.post(`/reports/${reportId}/review`, data);
-  return response.data;
-};
-
-// Validate test report
-export const validateTestReport = async (reportId) => {
-  const response = await api.post(`/reports/${reportId}/validate`);
-  return response.data;
-};
-
-// Reject test report
-export const rejectTestReport = async (reportId, notes) => {
-  const response = await api.post(`/reports/${reportId}/reject`, { notes });
-  return response.data;
-};
-
 // Download test report
 export const downloadTestReport = async (reportId) => {
   const response = await api.get(`/reports/${reportId}/download`, {
     responseType: 'blob'
   });
+  return response.data;
+};
+
+// Review test report (Pathologist)
+export const reviewTestReport = async (reportId, data) => {
+  const response = await api.post(`/reports/${reportId}/review`, data);
+  return response.data;
+};
+
+// Validate test report (Pathologist)
+export const validateTestReport = async (reportId) => {
+  const response = await api.post(`/reports/${reportId}/validate`);
+  return response.data;
+};
+
+// Reject test report (Pathologist)
+export const rejectTestReport = async (reportId, notes) => {
+  const response = await api.post(`/reports/${reportId}/reject`, { notes });
   return response.data;
 };
 
@@ -245,5 +245,18 @@ export const getTestResultStatistics = async (parameterId, startDate, endDate) =
   const response = await api.get('/test-results/statistics', {
     params: { parameter_id: parameterId, start_date: startDate, end_date: endDate }
   });
+  return response.data;
+};
+
+/* =================== 🔹 TEST BOOKINGS API 🔹 =================== */
+// Fetch test bookings with specific filters
+export const getTestBookings = async (filters = {}) => {
+  const response = await api.get('/test-bookings', { params: filters });
+  return response.data;
+};
+
+// Mark a sample as collected
+export const markSampleCollected = async (testBookingId) => {
+  const response = await api.post(`/test-bookings/${testBookingId}/mark-sample-collected`);
   return response.data;
 };

@@ -19,6 +19,7 @@ import LabDashboard from '../pages/lab/Dashboard';
 import SampleManagement from '../pages/lab/SampleManagement';
 import TestCatalog from '../pages/lab/TestCatalog';
 import LabReports from '../pages/lab/LabReports';
+import GenerateReport from '../pages/lab/GenerateReport'; // NEW
 
 import Settings from '../pages/common/Settings';
 import Notifications from '../pages/common/Notifications';
@@ -60,6 +61,7 @@ export const protectedRoutes = {
     { path: '/lab/reports', element: LabReports },
     { path: '/lab/pending-tests', element: SampleManagement }, // NEW
     { path: '/lab/completed-tests', element: LabReports }, // NEW
+    { path: '/lab/generate-report', element: GenerateReport }, // NEW
   ],
   common: [
     { path: '/settings', element: Settings },

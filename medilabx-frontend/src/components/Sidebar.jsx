@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaVials, FaUserFriends, FaChartBar, FaCog, FaBell, FaSignOutAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaHome, FaVials, FaUserFriends, FaChartBar, FaCog, FaBell, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaFileAlt } from 'react-icons/fa';
 import { useAuth } from '../context/authContext';
 
 const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
@@ -22,6 +22,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
       { path: '/lab', label: 'Dashboard', icon: FaHome },
       { path: '/lab/samples', label: 'Samples', icon: FaVials },
       { path: '/lab/reports', label: 'Reports', icon: FaChartBar },
+      { path: '/lab/generate-report', label: 'Generate Report', icon: FaFileAlt },
     ],
     patient: [
       { path: '/patient/dashboard', label: 'Dashboard', icon: FaHome },

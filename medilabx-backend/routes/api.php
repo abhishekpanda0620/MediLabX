@@ -36,14 +36,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Test-related routes
     Route::get('/test-categories', [TestController::class, 'getCategories']);
-    Route::apiResource('test-bookings', TestBookingController::class);
-    Route::apiResource('reports', ReportController::class);
-
-    // Report routes
-    Route::post('/reports', 'ReportController@store');
-    Route::get('/reports', 'ReportController@index');
-    Route::get('/reports/{id}', 'ReportController@show');
-    Route::get('/reports/{id}/download', 'ReportController@download');
+    
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::apiResource('test-bookings', TestBookingController::class);
+        Route::post('/test-bookings/{testBooking}/mark-sample-collected', [TestBookingController::class, 'markSampleCollected']);
+        Route::post('/test-bookings/{testBooking}/mark-processing', [TestBookingController::class, 'markProcessing']);
+        Route::post('/test-bookings/{testBooking}/mark-reviewed', [TestBookingController::class, 'markReviewed']);
+        Route::post('/test-bookings/{testBooking}/mark-completed', [TestBookingController::class, 'markCompleted']);
+        Route::post('/test-bookings/{testBooking}/cancel', [TestBookingController::class, 'cancel']);
+    });
 
     // Test Report Routes
     Route::get('/reports', [TestReportController::class, 'index']);
