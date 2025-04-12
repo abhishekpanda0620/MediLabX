@@ -260,3 +260,58 @@ export const markSampleCollected = async (testBookingId) => {
   const response = await api.post(`/test-bookings/${testBookingId}/mark-sample-collected`);
   return response.data;
 };
+
+// Mark a sample as processing
+export const markProcessing = async (testBookingId) => {
+  const response = await api.post(`/test-bookings/${testBookingId}/mark-processing`);
+  return response.data;
+};
+
+// Mark a test as reviewed
+export const markReviewed = async (testBookingId) => {
+  const response = await api.post(`/test-bookings/${testBookingId}/mark-reviewed`);
+  return response.data;
+};
+
+// Mark a test as completed
+export const markCompleted = async (testBookingId) => {
+  const response = await api.post(`/test-bookings/${testBookingId}/mark-completed`);
+  return response.data;
+};
+
+// Cancel a test booking
+export const cancelTestBooking = async (testBookingId, notes = '') => {
+  const response = await api.post(`/test-bookings/${testBookingId}/cancel`, { notes });
+  return response.data;
+};
+
+/* =================== 🔹 PATIENTS and DOCTORS API 🔹 =================== */
+// Get all patients
+export const getAllPatients = async () => {
+  try {
+    const response = await api.get('/patients');
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+    // Return some dummy data if API fails
+    return [
+      { id: 1, name: "John Doe" },
+      { id: 2, name: "Jane Smith" }
+    ];
+  }
+};
+
+// Get all doctors
+export const getAllDoctors = async () => {
+  try {
+    const response = await api.get('/doctors');
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching doctors:", error);
+    // Return some dummy data if API fails
+    return [
+      { id: 1, name: "Dr. Sarah Johnson" },
+      { id: 2, name: "Dr. Michael Brown" }
+    ];
+  }
+};

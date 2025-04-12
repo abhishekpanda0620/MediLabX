@@ -75,9 +75,9 @@ const SignIn = () => {
           </div>
           <button type="submit" className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg shadow-lg hover:bg-indigo-700 cursor-pointer">Sign In</button>
         </form>
-        <p className="mt-4 text-center text-gray-700">
+        {/* <p className="mt-4 text-center text-gray-700">
           Don't have an account? <Link to="/signup" className="text-blue-600 hover:underline">Sign Up</Link>
-        </p>
+        </p> */}
       </div>
     </div>
   );

@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getUserData, loginUser, logoutUser } from "../services/api";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // Fixed variable name to lowercase
 
   // Check if user is logged in on mount
   useEffect(() => {
@@ -48,11 +50,13 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await logoutUser();
+      console.log("User logged out");
+      navigate("/signin"); 
+      localStorage.removeItem("token");
+      setUser(null);
     } catch (error) {
       console.error("Logout error:", error);
     }
-    localStorage.removeItem("token");
-    setUser(null);
   };
 
   const value = {

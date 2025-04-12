@@ -14,19 +14,33 @@ class TestBookingController extends Controller
         // Removed middleware('auth') as it is now applied in routes/api.php
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $query = TestBooking::with(['patient', 'labTechnician', 'pathologist', 'doctor', 'test']);
 
-        if ($user->hasRole('patient')) {
-            $query->where('patient_id', $user->id);
-        } elseif ($user->hasRole('doctor')) {
-            $query->where('doctor_id', $user->id);
-        } elseif ($user->hasRole('lab_technician')) {
-            $query->whereIn('status', [TestBooking::STATUS_BOOKED, TestBooking::STATUS_SAMPLE_COLLECTED, TestBooking::STATUS_PROCESSING]);
-        } elseif ($user->hasRole('pathologist')) {
-            $query->whereIn('status', [TestBooking::STATUS_PROCESSING, TestBooking::STATUS_REVIEWED]);
+        // Filter by user role if no specific status is requested
+        if (!$request->has('status')) {
+            if ($user->hasRole('patient')) {
+                $query->where('patient_id', $user->id);
+            } elseif ($user->hasRole('doctor')) {
+                $query->where('doctor_id', $user->id);
+            } elseif ($user->hasRole('lab_technician')) {
+                $query->whereIn('status', [TestBooking::STATUS_BOOKED, TestBooking::STATUS_SAMPLE_COLLECTED, TestBooking::STATUS_PROCESSING]);
+            } elseif ($user->hasRole('pathologist')) {
+                $query->whereIn('status', [TestBooking::STATUS_PROCESSING, TestBooking::STATUS_REVIEWED]);
+            }
+        } else {
+            // If status parameter is provided, filter by that status
+            $status = $request->status;
+            $query->where('status', $status);
+            
+            // Still apply user role restrictions for security
+            if ($user->hasRole('patient')) {
+                $query->where('patient_id', $user->id);
+            } elseif ($user->hasRole('doctor')) {
+                $query->where('doctor_id', $user->id);
+            }
         }
 
         return response()->json($query->latest()->get());

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { publicRoutes, protectedRoutes } from './routes/routes';
 import AuthGuard from './components/AuthGuard';
 import { useAuth } from './context/authContext';
@@ -22,27 +22,25 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        {publicRoutes.map(({ path, element: Element }) => (
-          <Route key={path} path={path} element={<Element />} />
-        ))}
+    <Routes>
+      {/* Public Routes */}
+      {publicRoutes.map(({ path, element: Element }) => (
+        <Route key={path} path={path} element={<Element />} />
+      ))}
 
-        {/* Protected Routes */}
-        {getAllowedRoutes().map(({ path, element: Element }) => (
-          <Route
-            key={path}
-            path={path}
-            element={
-            <AuthGuard allowedRoles={[userRole]}>
-              <Element />
-            </AuthGuard>
-          }
-        />
-        ))}
-      </Routes>
-    </Router>
+      {/* Protected Routes */}
+      {getAllowedRoutes().map(({ path, element: Element }) => (
+        <Route
+          key={path}
+          path={path}
+          element={
+          <AuthGuard allowedRoles={[userRole]}>
+            <Element />
+          </AuthGuard>
+        }
+      />
+      ))}
+    </Routes>
   );
 }
 

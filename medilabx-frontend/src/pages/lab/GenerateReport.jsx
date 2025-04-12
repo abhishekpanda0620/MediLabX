@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaFileAlt, FaFlask } from 'react-icons/fa';
 import Layout from '../../components/Layout';
-import { getTestReports, createTestReport, submitTestReport } from '../../services/api';
+import { getTestReports, createTestReport, submitTestReport, getTestBookings } from '../../services/api';
 import ReportTemplate from '../../components/reports/ReportTemplate';
 import { PDFViewer } from '@react-pdf/renderer';
 
@@ -20,7 +20,8 @@ const GenerateReport = () => {
 
   const fetchTestBookings = async () => {
     try {
-      const response = await getTestReports({ status: 'processing' });
+      // Change from getTestReports to getTestBookings
+      const response = await getTestBookings({ status: 'processing' });
       setTestBookings(response);
     } catch (err) {
       setError('Failed to fetch test bookings');
@@ -68,14 +69,14 @@ const GenerateReport = () => {
   };
 
   const renderPreview = () => {
-    if (!selectedBooking) return null;
+    if (!selectedBooking || !selectedBooking.test || !selectedBooking.patient) return null;
 
     const reportData = {
       patientName: selectedBooking.patient.name,
       patientId: selectedBooking.patient.id,
       testType: selectedBooking.test.name,
       testDate: new Date(selectedBooking.created_at).toLocaleDateString(),
-      parameters: selectedBooking.test.parameters.map(param => {
+      parameters: (selectedBooking.test.parameters || []).map(param => {
         const result = testResults.find(r => r.parameter_id === param.id);
         return {
           name: param.parameter_name,
@@ -132,7 +133,7 @@ const GenerateReport = () => {
               </select>
             </div>
 
-            {selectedBooking && (
+            {selectedBooking && selectedBooking.test && selectedBooking.test.parameters && (
               <>
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Test Parameters</h3>

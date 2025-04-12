@@ -18,7 +18,7 @@ const Home = () => {
           <p className="text-lg sm:text-xl mb-6 sm:mb-10 text-gray-700 max-w-2xl mx-auto font-['Inter'] px-4">
             Experience modern healthcare solutions with MediLabX. We provide comprehensive pathology services with cutting-edge technology and expert care.
           </p>
-          <Link to="/signup">
+          <Link to="/signin">
             <button className="bg-indigo-600 text-white py-2 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-200 font-semibold">
               Get Started Today
             </button>
@@ -68,7 +68,7 @@ const Home = () => {
         <div className="text-center py-8 sm:py-16 bg-gradient-to-r from-indigo-600 to-blue-600 px-4">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-white">Ready to Get Started?</h2>
           <p className="text-lg sm:text-xl mb-6 sm:mb-10 text-white">Join MediLabX today and take control of your health journey.</p>
-          <Link to="/signup">
+          <Link to="/signin">
             <button className="bg-white text-indigo-600 py-2 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 font-semibold">
               Get Started
             </button>
