@@ -57,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reports/{testReport}/review', [TestReportController::class, 'review']);
     Route::post('/reports/{testReport}/validate', [TestReportController::class, 'validate']);
     Route::post('/reports/{testReport}/reject', [TestReportController::class, 'reject']);
+    Route::get('/reports/{testReport}/download', [TestReportController::class, 'download']);
+    Route::post('/reports/{testReport}/notify', [TestReportController::class, 'notify']);
 
     // Test Result Routes
     Route::post('/test-reports/{testReport}/validate-results', [TestResultController::class, 'validateResults']);

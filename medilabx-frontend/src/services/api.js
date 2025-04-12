@@ -225,6 +225,12 @@ export const rejectTestReport = async (reportId, notes) => {
   return response.data;
 };
 
+// Send notification to patient about report
+export const sendReportNotification = async (reportId) => {
+  const response = await api.post(`/reports/${reportId}/notify`);
+  return response.data;
+};
+
 /* =================== 🔹 TEST RESULTS API 🔹 =================== */
 // Validate test results
 export const validateTestResults = async (reportId, results) => {
