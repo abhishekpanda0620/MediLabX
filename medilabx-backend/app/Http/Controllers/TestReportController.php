@@ -15,20 +15,35 @@ class TestReportController extends Controller
         $user = Auth::user();
         $query = TestReport::with(['testBooking', 'testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
 
-        // Filter reports based on user role
-        if ($user->hasRole('patient')) {
-            $query->whereHas('testBooking', function ($q) use ($user) {
-                $q->where('patient_id', $user->id);
-            });
-        } elseif ($user->hasRole('doctor')) {
-            $query->whereHas('testBooking', function ($q) use ($user) {
-                $q->where('doctor_id', $user->id);
-            });
-        } elseif ($user->hasRole('lab_technician')) {
-            $query->where('lab_technician_id', $user->id)
-                  ->whereIn('status', [TestReport::STATUS_DRAFT, TestReport::STATUS_SUBMITTED, TestReport::STATUS_REJECTED]);
-        } elseif ($user->hasRole('pathologist')) {
-            $query->whereIn('status', [TestReport::STATUS_SUBMITTED, TestReport::STATUS_REVIEWED]);
+        // Check if showAll parameter is specified, used for admin views and lab reports page
+        if ($request->has('showAll') && $request->showAll === 'true') {
+            // If showAll is true, we only apply role-based restrictions for non-staff users
+            if ($user->hasRole('patient')) {
+                $query->whereHas('testBooking', function ($q) use ($user) {
+                    $q->where('patient_id', $user->id);
+                });
+            } elseif ($user->hasRole('doctor')) {
+                $query->whereHas('testBooking', function ($q) use ($user) {
+                    $q->where('doctor_id', $user->id);
+                });
+            }
+            // Lab technicians and pathologists can see all reports with showAll=true
+        } else {
+            // Standard filtering based on user role
+            if ($user->hasRole('patient')) {
+                $query->whereHas('testBooking', function ($q) use ($user) {
+                    $q->where('patient_id', $user->id);
+                });
+            } elseif ($user->hasRole('doctor')) {
+                $query->whereHas('testBooking', function ($q) use ($user) {
+                    $q->where('doctor_id', $user->id);
+                });
+            } elseif ($user->hasRole('lab_technician')) {
+                $query->where('lab_technician_id', $user->id)
+                      ->whereIn('status', [TestReport::STATUS_DRAFT, TestReport::STATUS_SUBMITTED, TestReport::STATUS_REJECTED]);
+            } elseif ($user->hasRole('pathologist')) {
+                $query->whereIn('status', [TestReport::STATUS_SUBMITTED, TestReport::STATUS_REVIEWED]);
+            }
         }
 
         // Add filter for status if provided in the request

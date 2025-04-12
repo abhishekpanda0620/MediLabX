@@ -19,10 +19,13 @@ const LabReports = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const response = await getTestReports();
+      // Add a showAll parameter to bypass restrictive filters in the backend
+      const response = await getTestReports({ showAll: true });
+      console.log("API Response - Test Reports:", response);
       setReports(response);
       setError(null);
     } catch (err) {
+      console.error("Error fetching reports:", err); // Detailed error logging
       setError('Failed to load reports: ' + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
