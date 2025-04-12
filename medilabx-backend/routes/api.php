@@ -10,6 +10,9 @@ use App\Http\Controllers\TestBookingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TestReportController;
 use App\Http\Controllers\TestResultController;
+use App\Http\Controllers\DoctorController;
+
+
 
 // Public authentication routes
 Route::post('register', [AuthController::class, 'register']);
@@ -25,7 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // User roles
     Route::apiResource('patients', PatientController::class);
     Route::apiResource('lab-technicians', LabTechnicianController::class);
-    Route::apiResource('pathologists', PathologistController::class);
+    // Route::apiResource('pathologists', PathologistController::class);
+    Route::apiResource('doctors', DoctorController::class);
 
     // Test Templates routes
     Route::get('/test-templates', [TestController::class, 'getAllTestTemplates']);

@@ -10,30 +10,30 @@ use Exception;
 
 class TestReportController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = TestReport::with(['testBooking', 'labTechnician', 'pathologist']);
+        $query = TestReport::with(['testBooking', 'testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
 
         // Filter reports based on user role
         if ($user->hasRole('patient')) {
             $query->whereHas('testBooking', function ($q) use ($user) {
-                $q->where('patient_id', $user->patient->id);
+                $q->where('patient_id', $user->id);
             });
         } elseif ($user->hasRole('doctor')) {
             $query->whereHas('testBooking', function ($q) use ($user) {
-                $q->where('doctor_id', $user->doctor->id);
+                $q->where('doctor_id', $user->id);
             });
         } elseif ($user->hasRole('lab_technician')) {
-            $query->where('lab_technician_id', $user->labTechnician->id)
+            $query->where('lab_technician_id', $user->id)
                   ->whereIn('status', [TestReport::STATUS_DRAFT, TestReport::STATUS_SUBMITTED, TestReport::STATUS_REJECTED]);
         } elseif ($user->hasRole('pathologist')) {
             $query->whereIn('status', [TestReport::STATUS_SUBMITTED, TestReport::STATUS_REVIEWED]);
+        }
+
+        // Add filter for status if provided in the request
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
         }
 
         return response()->json($query->latest()->get());
@@ -60,18 +60,20 @@ class TestReportController extends Controller
 
     public function submit(Request $request, TestReport $testReport)
     {
-        if (!Auth::user()->hasRole('lab_technician')) {
+        $user = Auth::user();
+        if (!$user->hasRole('lab_technician')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Use the User ID directly instead of looking for a labTechnician relationship
         $request->validate([
-            'test_results' => 'required|array',
+            'test_results' => 'array', // Changed from 'required|array' to 'array' to allow empty arrays
             'notes' => 'nullable|string'
         ]);
 
         try {
             $testReport->submit(
-                Auth::user()->labTechnician->id,
+                $user->id, // Use the User ID directly
                 $request->test_results,
                 $request->notes
             );
@@ -84,10 +86,12 @@ class TestReportController extends Controller
 
     public function review(Request $request, TestReport $testReport)
     {
-        if (!Auth::user()->hasRole('pathologist')) {
+        $user = Auth::user();
+        if (!$user->hasRole('pathologist')) {
             return response()->json(['message' => 'Unauthorized'], 403);
-        }
+         }
 
+        // Use the User ID directly instead of looking for a pathologist relationship
         $request->validate([
             'notes' => 'nullable|string',
             'conclusion' => 'required|string'
@@ -95,7 +99,7 @@ class TestReportController extends Controller
 
         try {
             $testReport->review(
-                Auth::user()->pathologist->id,
+                $user->id, // Use the User ID directly
                 $request->notes,
                 $request->conclusion
             );
@@ -108,12 +112,14 @@ class TestReportController extends Controller
 
     public function validate(Request $request, TestReport $testReport)
     {
-        if (!Auth::user()->hasRole('pathologist')) {
+        $user = Auth::user();
+        if (!$user->hasRole('pathologist')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Use the User ID directly instead of looking for a pathologist relationship
         try {
-            $testReport->validate(Auth::user()->pathologist->id);
+            $testReport->validate($user->id);
             return response()->json($testReport->fresh());
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -122,16 +128,18 @@ class TestReportController extends Controller
 
     public function reject(Request $request, TestReport $testReport)
     {
-        if (!Auth::user()->hasRole('pathologist')) {
+        $user = Auth::user();
+        if (!$user->hasRole('pathologist')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Use the User ID directly instead of looking for a pathologist relationship
         $request->validate([
             'notes' => 'required|string'
         ]);
 
         try {
-            $testReport->reject(Auth::user()->pathologist->id, $request->notes);
+            $testReport->reject($user->id, $request->notes);
             return response()->json($testReport->fresh());
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);

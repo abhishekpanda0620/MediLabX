@@ -43,12 +43,12 @@ class TestReport extends Model
 
     public function labTechnician()
     {
-        return $this->belongsTo(LabTechnician::class);
+        return $this->belongsTo(User::class, 'lab_technician_id');
     }
 
     public function pathologist()
     {
-        return $this->belongsTo(Pathologist::class);
+        return $this->belongsTo(User::class, 'pathologist_id');
     }
 
     public function submit($labTechnicianId, $testResults, $notes = null)

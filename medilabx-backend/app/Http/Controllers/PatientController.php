@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PatientController extends Controller
@@ -10,9 +11,17 @@ class PatientController extends Controller
     // GET /patients
     public function index()
     {
-        // Retrieve all patients
-        return User::hasRole('patient')->get();
+        // Check if there are any patients in the database
+        $patients = User::role('patient')->get();
         
+        // If no patients found, create some dummy data
+        if ($patients->isEmpty()) {
+            return response()->json(['message' => 'No patients found'], 404);
+
+
+        }
+        
+        return response()->json($patients);
     }
 
     // GET /patients/{id}
@@ -45,7 +54,7 @@ class PatientController extends Controller
     public function destroy($id)
     {
         // Delete a patient
-        Patient::findOrFail($id)->delete();
+        User::findOrFail($id)->delete();
         return response()->json(null, 204);
     }
 }

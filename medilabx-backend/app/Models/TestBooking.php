@@ -38,19 +38,19 @@ class TestBooking extends Model
     const STATUS_CANCELLED = 'cancelled';
 
     public function patient() {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(User::class, 'patient_id');
     }
 
     public function labTechnician() {
-        return $this->belongsTo(LabTechnician::class);
+        return $this->belongsTo(User::class, 'lab_technician_id');
     }
 
     public function pathologist() {
-        return $this->belongsTo(Pathologist::class);
+        return $this->belongsTo(User::class, 'pathologist_id');
     }
 
     public function doctor() {
-        return $this->belongsTo(Doctor::class);
+        return $this->belongsTo(User::class, 'doctor_id');
     }
 
     public function test() {
