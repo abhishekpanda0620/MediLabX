@@ -202,9 +202,17 @@ export const submitTestReport = async (reportId, data) => {
 // Download test report
 export const downloadTestReport = async (reportId) => {
   const response = await api.get(`/reports/${reportId}/download`, {
-    responseType: 'blob'
+    responseType: 'blob' // Ensure the response is treated as a file
   });
-  return response.data;
+
+  // Create a download link for the file
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `test-report-${reportId}.pdf`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 // Review test report (Pathologist)

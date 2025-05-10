@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Test;
 use App\Models\TestParameter;
+use Illuminate\Support\Facades\DB;
 
 class TestSeeder extends Seeder
 {
@@ -348,5 +349,25 @@ class TestSeeder extends Seeder
         foreach ($covidParameters as $param) {
             TestParameter::create(array_merge($param, ['test_id' => $covid->id]));
         }
+
+        DB::table('test_reports')->insert([
+            'test_booking_id' => 5,
+            'lab_technician_id' => 3,
+            'status' => 'submitted',
+            'test_results' => json_encode([
+                [
+                    'parameter_id' => 1,
+                    'value' => '13.5',
+                ],
+                [
+                    'parameter_id' => 2,
+                    'value' => '4.5',
+                ],
+            ]),
+            'technician_notes' => 'Sample collected and processed successfully.',
+            'submitted_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

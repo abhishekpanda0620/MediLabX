@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaFileAlt, FaEye, FaDownload, FaShare, FaSearch, FaBell, FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
 import Layout from '../../components/Layout';
-import { getTestReports, sendReportNotification } from '../../services/api';
+import { getTestReports, sendReportNotification, downloadTestReport } from '../../services/api';
 
 const LabReports = () => {
   const [reports, setReports] = useState([]);
@@ -52,9 +52,14 @@ const LabReports = () => {
     }
   };
 
-  const handleDownload = (reportId) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-    window.open(`${apiUrl}/reports/${reportId}/download`, '_blank');
+  const handleDownload = async (reportId) => {
+    try {
+      // Trigger the backend to generate and download the report
+      await downloadTestReport(reportId);
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      alert('Failed to generate or download the report. Please ensure the report is validated and try again.');
+    }
   };
   
   const handleViewReport = (report) => {
@@ -166,7 +171,7 @@ const LabReports = () => {
                         className={`flex items-center px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 ${
                           report.status !== 'validated' ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
-                        onClick={() => report.status === 'validated' && handleDownload(report.id)}
+                        onClick={() => handleDownload(report.id)}
                         disabled={report.status !== 'validated'}
                         title={report.status !== 'validated' ? 'Report must be validated to download' : 'Download Report'}
                       >

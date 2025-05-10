@@ -76,26 +76,30 @@ class TestReportController extends Controller
     public function submit(Request $request, TestReport $testReport)
     {
         $user = Auth::user();
+
         if (!$user->hasRole('lab_technician')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Use the User ID directly instead of looking for a labTechnician relationship
         $request->validate([
-            'test_results' => 'array', // Changed from 'required|array' to 'array' to allow empty arrays
-            'notes' => 'nullable|string'
+            'test_results' => 'required|array|min:1',
+            'test_results.*.parameter_id' => 'required|exists:test_parameters,id',
+            'test_results.*.value' => 'required',
+            'notes' => 'nullable|string',
         ]);
 
         try {
-            $testReport->submit(
-                $user->id, // Use the User ID directly
-                $request->test_results,
-                $request->notes
-            );
+            $testReport->update([
+                'test_results' => $request->test_results,
+                'technician_notes' => $request->notes,
+                'status' => TestReport::STATUS_SUBMITTED,
+                'submitted_at' => now(),
+                'lab_technician_id' => $user->id,
+            ]);
 
             return response()->json($testReport->fresh());
-        } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to submit report', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -167,44 +171,39 @@ class TestReportController extends Controller
     public function download(Request $request, TestReport $testReport)
     {
         $user = Auth::user();
-        
-        // Check authorization - patients can only access their own reports,
-        // doctors can only access reports they ordered, lab staff can access any report
+
+        // Authorization checks
         if ($user->hasRole('patient') && $testReport->testBooking->patient_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         } elseif ($user->hasRole('doctor') && $testReport->testBooking->doctor_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        
-        // Load necessary relationships if not already loaded
-        $testReport->load(['testBooking.patient', 'testBooking.test', 'testBooking.doctor', 'labTechnician', 'pathologist']);
-        
-        // Format dates nicely
-        $reportDate = $testReport->created_at->format('F j, Y');
-        $reviewedDate = $testReport->reviewed_at ? $testReport->reviewed_at->format('F j, Y') : 'Not reviewed yet';
-        $validatedDate = $testReport->validated_at ? $testReport->validated_at->format('F j, Y') : 'Not validated yet';
-        
-        // Generate PDF using the view
+
+        // Ensure the report is validated before allowing download
+        if ($testReport->status !== TestReport::STATUS_VALIDATED) {
+            return response()->json(['message' => 'Report must be validated before download'], 422);
+        }
+
+        // Load necessary relationships
+        $testReport->load(['testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
+
+        // Check for missing data
+        if (!$testReport->testBooking || !$testReport->testBooking->patient || !$testReport->testBooking->test) {
+            return response()->json(['message' => 'Incomplete report data. Please contact support.'], 500);
+        }
+
+        // Generate PDF using the Blade template
         $pdf = \PDF::loadView('reports.test_report', [
             'report' => $testReport,
-            'reportDate' => $reportDate,
-            'reviewedDate' => $reviewedDate,
-            'validatedDate' => $validatedDate
+            'reportDate' => now()->format('F j, Y'),
         ]);
-        
+
         // Set PDF options
         $pdf->setPaper('a4', 'portrait');
-        $pdf->setOptions([
-            'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled' => true
-        ]);
-        
+
         // Generate a meaningful filename
-        $patientName = $testReport->testBooking->patient->name ?? 'Unknown';
-        $testName = $testReport->testBooking->test->name ?? 'Test';
-        $date = now()->format('Y-m-d');
-        $filename = "Report_{$testName}_{$patientName}_{$date}.pdf";
-        
+        $filename = "Report_{$testReport->testBooking->test->name}_{$testReport->testBooking->patient->name}.pdf";
+
         // Return the PDF for download
         return $pdf->download($filename);
     }

@@ -11,108 +11,122 @@
         }
         .header {
             text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #ddd;
             margin-bottom: 20px;
-        }
-        .header img {
-            max-width: 200px;
-            height: auto;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
         }
         .header h1 {
             color: #2563eb;
-            font-size: 24px;
+            font-size: 20px;
             margin: 10px 0;
         }
-        .lab-info {
-            font-size: 14px;
-            margin-bottom: 10px;
+        .header p {
+            font-size: 12px;
+            color: #666;
         }
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .section-title {
+            font-size: 14px;
             font-weight: bold;
-            font-size: 16px;
             background-color: #f3f4f6;
             padding: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
-        .patient-info, .test-info {
+        .row {
             display: flex;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 5px;
         }
-        .info-item {
+        .label {
+            font-weight: bold;
             width: 50%;
-            padding: 5px 0;
+        }
+        .value {
+            width: 50%;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         table, th, td {
             border: 1px solid #ddd;
         }
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
         th {
             background-color: #f3f4f6;
+            font-weight: bold;
+            text-align: left;
+            padding: 5px;
+        }
+        td {
+            padding: 5px;
+            text-align: left;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 20px;
         }
         .abnormal {
             color: #dc2626;
             font-weight: bold;
-        }
-        .footer {
-            margin-top: 30px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-            font-size: 12px;
-        }
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
-        }
-        .signature {
-            width: 45%;
-            border-top: 1px solid #333;
-            padding-top: 5px;
-            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>MediLabX Diagnostic Center</h1>
-        <div class="lab-info">
-            123 Medical Avenue, Healthcity, HC 12345<br>
-            Phone: (123) 456-7890 | Email: info@medilabx.com<br>
-            CLIA ID: 12D3456789 | Lab Director: Dr. Medical Director
-        </div>
+        <p>123 Medical Avenue, Healthcity, HC 12345 | Phone: (123) 456-7890 | Email: info@medilabx.com</p>
     </div>
 
     <div class="section">
         <div class="section-title">Patient Information</div>
-        <div class="patient-info">
-            <div class="info-item"><strong>Patient Name:</strong> {{ $report->testBooking->patient->name }}</div>
-            <div class="info-item"><strong>Patient ID:</strong> {{ $report->testBooking->patient->id }}</div>
-            <div class="info-item"><strong>Gender:</strong> {{ $report->testBooking->patient->gender ?? 'Not specified' }}</div>
-            <div class="info-item"><strong>DOB:</strong> {{ $report->testBooking->patient->date_of_birth ?? 'Not specified' }}</div>
+        <div class="row">
+            <div class="label">Name:</div>
+            <div class="value">{{ $report->testBooking->patient->name ?? 'Unknown' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Patient ID:</div>
+            <div class="value">{{ $report->testBooking->patient->id ?? 'Unknown' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Gender:</div>
+            <div class="value">{{ $report->testBooking->patient->gender ?? 'Not specified' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">DOB:</div>
+            <div class="value">{{ $report->testBooking->patient->date_of_birth ?? 'Not specified' }}</div>
         </div>
     </div>
 
     <div class="section">
         <div class="section-title">Test Information</div>
-        <div class="test-info">
-            <div class="info-item"><strong>Test Name:</strong> {{ $report->testBooking->test->name }}</div>
-            <div class="info-item"><strong>Test Code:</strong> {{ $report->testBooking->test->code }}</div>
-            <div class="info-item"><strong>Sample Collection:</strong> {{ $report->testBooking->sample_collection_time }}</div>
-            <div class="info-item"><strong>Report Date:</strong> {{ $reportDate }}</div>
-            <div class="info-item"><strong>Ordering Physician:</strong> {{ $report->testBooking->doctor->name }}</div>
-            <div class="info-item"><strong>Report Status:</strong> {{ strtoupper($report->status) }}</div>
+        <div class="row">
+            <div class="label">Test Name:</div>
+            <div class="value">{{ $report->testBooking->test->name ?? 'Unknown' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Test Code:</div>
+            <div class="value">{{ $report->testBooking->test->code ?? 'Unknown' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Sample Collection:</div>
+            <div class="value">{{ $report->testBooking->sample_collection_time ?? 'Not available' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Report Date:</div>
+            <div class="value">{{ $reportDate }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Ordering Physician:</div>
+            <div class="value">{{ $report->testBooking->doctor->name }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Report Status:</div>
+            <div class="value">{{ strtoupper($report->status) }}</div>
         </div>
     </div>
 
@@ -123,7 +137,7 @@
                 <tr>
                     <th>Parameter</th>
                     <th>Result</th>
-                    <th>Units</th>
+                    <th>Unit</th>
                     <th>Reference Range</th>
                     <th>Flag</th>
                 </tr>
