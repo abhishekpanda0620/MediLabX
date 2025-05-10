@@ -320,23 +320,21 @@ const SampleManagement = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className={`  ${activeTab=='completed'?'hidden':'flex'} px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase`}>Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredSamples.map(sample => (
                   <tr key={sample.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">#{sample.id}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{sample.patient?.name || 'Unknown Patient'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{sample.test?.name || 'Unknown Test'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {new Date(sample.created_at).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm  ${activeTab=='completed'?'hidden':'flex'} gap-2`}>
                       {getActionButton(sample)}
                       
                       {activeTab !== 'completed' && (

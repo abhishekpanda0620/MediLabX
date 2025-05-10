@@ -201,18 +201,53 @@ export const submitTestReport = async (reportId, data) => {
 
 // Download test report
 export const downloadTestReport = async (reportId) => {
-  const response = await api.get(`/reports/${reportId}/download`, {
-    responseType: 'blob' // Ensure the response is treated as a file
-  });
+  try {
+    const response = await api.get(`/reports/${reportId}/download`, {
+      responseType: 'blob' // Ensure the response is treated as a file
+    });
+    
+    // Check if the response is valid
+    if (response.data.type && response.data.type.includes('application/json')) {
+      // This means we got an error response instead of a PDF
+      const reader = new FileReader();
+      reader.onload = function() {
+        const error = JSON.parse(reader.result);
+        console.error('Error downloading report:', error);
+        alert(`Failed to download report: ${error.message || 'Unknown error'}`);
+      };
+      reader.readAsText(response.data);
+      return;
+    }
 
-  // Create a download link for the file
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', `test-report-${reportId}.pdf`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    // Create a download link for the file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `test-report-${reportId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the object URL to avoid memory leaks
+    setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    
+    return true;
+  } catch (error) {
+    console.error('Error downloading report:', error);
+    alert('Failed to download report. Please try again later.');
+    return false;
+  }
+};
+
+// Get cached report or generate new one
+export const getReportPreview = async (reportId) => {
+  try {
+    const response = await api.get(`/reports/${reportId}/preview`);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting report preview:", error);
+    throw error;
+  }
 };
 
 // Review test report (Pathologist)
@@ -235,8 +270,13 @@ export const rejectTestReport = async (reportId, notes) => {
 
 // Send notification to patient about report
 export const sendReportNotification = async (reportId) => {
-  const response = await api.post(`/reports/${reportId}/notify`);
-  return response.data;
+  try {
+    const response = await api.post(`/reports/${reportId}/notify`);
+    return response.data;
+  } catch (error) {
+    console.error("Error sending notification:", error);
+    throw new Error(error.response?.data?.message || "Failed to send notification");
+  }
 };
 
 /* =================== 🔹 TEST RESULTS API 🔹 =================== */

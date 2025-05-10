@@ -6,6 +6,8 @@ use App\Models\TestReport;
 use App\Models\TestBooking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Exception;
 
 class TestReportController extends Controller
@@ -184,28 +186,75 @@ class TestReportController extends Controller
             return response()->json(['message' => 'Report must be validated before download'], 422);
         }
 
+        try {
+            // Check if we already have a cached version of the PDF
+            $cacheKey = "report_pdf_{$testReport->id}";
+            $pdfPath = Cache::get($cacheKey);
+            
+            // If no cached version or file doesn't exist, generate a new one
+            if (!$pdfPath || !Storage::exists($pdfPath)) {
+                // Load necessary relationships
+                $testReport->load(['testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
+
+                // Check for missing data
+                if (!$testReport->testBooking || !$testReport->testBooking->patient || !$testReport->testBooking->test) {
+                    return response()->json(['message' => 'Incomplete report data. Please contact support.'], 500);
+                }
+
+                // Generate PDF using the Blade template
+                $pdf = \PDF::loadView('reports.test_report', [
+                    'report' => $testReport,
+                    'reportDate' => now()->format('F j, Y'),
+                    'validatedDate' => $testReport->validated_at ? date('F j, Y H:i:s', strtotime($testReport->validated_at)) : 'Not validated'
+                ]);
+
+                // Set PDF options
+                $pdf->setPaper('a4', 'portrait');
+
+                // Generate filename and path for storage
+                $filename = "report_{$testReport->id}_" . time() . ".pdf";
+                $pdfPath = "reports/{$filename}";
+                
+                // Store the PDF
+                Storage::put($pdfPath, $pdf->output());
+                
+                // Cache the path for future requests (30 minutes)
+                Cache::put($cacheKey, $pdfPath, now()->addMinutes(30));
+            }
+            
+            // Generate a meaningful filename for download
+            $downloadFilename = "Report_{$testReport->testBooking->test->name}_{$testReport->testBooking->patient->name}.pdf";
+            
+            // Return the PDF for download
+            return Storage::download($pdfPath, $downloadFilename);
+        } catch (\Exception $e) {
+            \Log::error("PDF Generation Error: " . $e->getMessage());
+            return response()->json(['message' => 'Error generating PDF: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Preview the test report (for web view).
+     */
+    public function preview(Request $request, TestReport $testReport)
+    {
+        $user = Auth::user();
+
+        // Authorization checks (same as download)
+        if ($user->hasRole('patient') && $testReport->testBooking->patient_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        } elseif ($user->hasRole('doctor') && $testReport->testBooking->doctor_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         // Load necessary relationships
         $testReport->load(['testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
 
-        // Check for missing data
-        if (!$testReport->testBooking || !$testReport->testBooking->patient || !$testReport->testBooking->test) {
-            return response()->json(['message' => 'Incomplete report data. Please contact support.'], 500);
-        }
-
-        // Generate PDF using the Blade template
-        $pdf = \PDF::loadView('reports.test_report', [
+        // Return the report data for preview
+        return response()->json([
             'report' => $testReport,
-            'reportDate' => now()->format('F j, Y'),
+            'parameters' => $testReport->testBooking->test->parameters ?? []
         ]);
-
-        // Set PDF options
-        $pdf->setPaper('a4', 'portrait');
-
-        // Generate a meaningful filename
-        $filename = "Report_{$testReport->testBooking->test->name}_{$testReport->testBooking->patient->name}.pdf";
-
-        // Return the PDF for download
-        return $pdf->download($filename);
     }
 
     /**
@@ -218,35 +267,37 @@ class TestReportController extends Controller
             return response()->json(['message' => 'Only validated reports can be shared with patients'], 422);
         }
 
-        // Load the necessary relationships
-        $testReport->load(['testBooking.patient', 'testBooking.test']);
-        
-        $patient = $testReport->testBooking->patient;
-        
-        if (!$patient) {
-            return response()->json(['message' => 'Patient not found'], 404);
+        try {
+            // Load the necessary relationships
+            $testReport->load(['testBooking.patient', 'testBooking.test']);
+            
+            $patient = $testReport->testBooking->patient;
+            
+            if (!$patient) {
+                return response()->json(['message' => 'Patient not found'], 404);
+            }
+            
+            // Get patient email
+            $patientEmail = $patient->email;
+            $patientName = $patient->name;
+            $testName = $testReport->testBooking->test->name ?? 'Test';
+            
+            // In a real application, you would queue an email job here
+            // For now, we'll just simulate a successful email send
+            
+            // Example of how you would send an email in a real application:
+            // Mail::to($patientEmail)->send(new TestReportAvailable($testReport));
+            
+            // Log the notification attempt
+            \Log::info("Notification sent to patient: {$patientName} ({$patientEmail}) for test report #{$testReport->id}");
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Notification sent to patient: {$patientName}",
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Notification Error: " . $e->getMessage());
+            return response()->json(['message' => 'Error sending notification: ' . $e->getMessage()], 500);
         }
-        
-        // Get patient email
-        $patientEmail = $patient->email;
-        $patientName = $patient->name;
-        $testName = $testReport->testBooking->test->name ?? 'Test';
-        
-        // In a real application, you would queue an email job here
-        // For now, we'll just simulate a successful email send
-        
-        // Example of how you would send an email in a real application:
-        // Mail::to($patientEmail)->send(new TestReportAvailable($testReport));
-        
-        // Or send an SMS using a service like Twilio:
-        // $this->sendSms($patient->phone_number, "Hello $patientName, your $testName report is now available. Please login to view it.");
-        
-        // Log the notification attempt
-        \Log::info("Notification sent to patient: {$patientName} ({$patientEmail}) for test report #{$testReport->id}");
-        
-        return response()->json([
-            'success' => true,
-            'message' => "Notification sent to patient: {$patientName}",
-        ]);
     }
 }
