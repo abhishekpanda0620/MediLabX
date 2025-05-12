@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { publicRoutes, protectedRoutes } from './routes/routes';
 import AuthGuard from './components/AuthGuard';
 import { useAuth } from './context/authContext';
+import TestPackages from './pages/admin/TestPackages';
 
 function App() {
   // This should come from your auth context/state
@@ -40,6 +41,7 @@ function App() {
         }
       />
       ))}
+      <Route path="/admin/test-packages" element={<TestPackages />} />
     </Routes>
   );
 }

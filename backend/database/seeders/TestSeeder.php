@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Test;
 use App\Models\TestParameter;
+use App\Models\TestBooking;
 use Illuminate\Support\Facades\DB;
 
 class TestSeeder extends Seeder
@@ -350,8 +351,22 @@ class TestSeeder extends Seeder
             TestParameter::create(array_merge($param, ['test_id' => $covid->id]));
         }
 
+        // Create test booking first
+        $testBookingId = DB::table('test_bookings')->insertGetId([
+            'patient_id' => 5,
+            'doctor_id' => 2,
+            'test_id' => 1, // Using CBC test
+            'status' => 'processing',
+            'notes' => 'Seeded test booking',
+            'sample_collection_time' => now(),
+            'processing_time' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Now use the testBookingId for the test report
         DB::table('test_reports')->insert([
-            'test_booking_id' => 5,
+            'test_booking_id' => $testBookingId, // Use the ID we just created
             'lab_technician_id' => 3,
             'status' => 'submitted',
             'test_results' => json_encode([

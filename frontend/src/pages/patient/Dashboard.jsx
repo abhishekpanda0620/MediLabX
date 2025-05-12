@@ -1,238 +1,188 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { FaCalendarCheck, FaClipboardCheck, FaSpinner, FaTimesCircle, FaFileAlt } from 'react-icons/fa';
 import Layout from '../../components/Layout';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { FaFileAlt, FaCalendarCheck, FaClipboardList, FaBell } from 'react-icons/fa';
-import TableWrapper from '../../components/common/TableWrapper';
+import { getPatientDashboardStats } from '../../services/api';
+import { Link } from 'react-router-dom';
 
-const PatientDashboardPage = () => {
-  // Test history data
-  const testData = [
-    { name: 'Jan', tests: 4 },
-    { name: 'Feb', tests: 3 },
-    { name: 'Mar', tests: 5 },
-    { name: 'Apr', tests: 2 },
-    { name: 'May', tests: 6 },
-    { name: 'Jun', tests: 4 },
-  ];
+const Dashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Test types data for pie chart
-  const testTypesData = [
-    { name: 'Blood Tests', value: 35 },
-    { name: 'Urine Tests', value: 25 },
-    { name: 'X-Ray', value: 20 },
-    { name: 'Other', value: 20 },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getPatientDashboardStats();
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load dashboard statistics');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+    fetchStats();
+  }, []);
 
-  // Stats data
-  const stats = [
-    { id: 1, name: 'Total Tests', stat: '42', icon: FaFileAlt, color: 'bg-blue-500' },
-    { id: 2, name: 'Appointments', stat: '3', icon: FaCalendarCheck, color: 'bg-green-500' },
-    { id: 3, name: 'Pending Reports', stat: '2', icon: FaClipboardList, color: 'bg-yellow-500' },
-    { id: 4, name: 'Notifications', stat: '5', icon: FaBell, color: 'bg-purple-500' },
-  ];
-
-  const upcomingAppointments = [
-    { id: 1, test: 'Blood Test', date: '2024-02-20', time: '10:00 AM', doctor: 'Dr. Smith' },
-    { id: 2, test: 'X-Ray', date: '2024-02-25', time: '2:30 PM', doctor: 'Dr. Johnson' }
-  ];
-
-  const recentReports = [
-    { id: 1, name: 'Blood Test Report', date: '2024-02-01', status: 'Completed' },
-    { id: 2, name: 'Urine Analysis', date: '2024-01-25', status: 'Pending' }
-  ];
-
-  const recentTests = [
-    { id: 1, name: 'Blood Test', date: '2025-02-25', status: 'Completed' },
-  ];
+  if (loading) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <div className="text-center py-10">
+            <div className="text-gray-500">Loading dashboard statistics...</div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Header Section */}
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Patient Dashboard</h1>
-            <p className="mt-2 text-sm text-gray-700 max-w-2xl">
-              Welcome back! Here's an overview of your health records and upcoming appointments.
-            </p>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Patient Dashboard</h1>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 text-red-700 border border-red-400 rounded">
+            {error}
           </div>
-        </div>
+        )}
 
-        {/* Stats Grid */}
-        <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((item) => (
-            <div
-              key={item.id}
-              className="relative overflow-hidden rounded-lg bg-white p-4 sm:px-6 shadow hover:shadow-lg transition-shadow duration-300"
-            >
-              <dt>
-                <div className={`absolute rounded-md p-3 ${item.color}`}>
-                  <item.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" aria-hidden="true" />
-                </div>
-                <p className="ml-16 truncate text-sm font-medium text-gray-500">{item.name}</p>
-              </dt>
-              <dd className="ml-16 flex items-baseline pb-2 sm:pb-3">
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">{item.stat}</p>
-              </dd>
-            </div>
-          ))}
-        </div>
-
-        {/* Charts Grid */}
-        <div className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          {/* Test History Chart */}
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4">Test History</h2>
-            <div className="h-64 sm:h-80 lg:h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={testData}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Area 
-                    type="monotone" 
-                    dataKey="tests" 
-                    stroke="#6366f1" 
-                    fill="#818cf8"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Test Types Distribution */}
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4">Test Types Distribution</h2>
-            <div className="h-64 sm:h-80 lg:h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={testTypesData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius="90%"
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => 
-                      window.innerWidth < 640 ? 
-                        `${(percent * 100).toFixed(0)}%` : 
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {testTypesData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Tests Table */}
-        <div className="mt-6 sm:mt-8">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow overflow-hidden">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4">Recent Tests</h2>
-            
-            {/* Mobile View */}
-            <div className="block sm:hidden space-y-4">
-              {recentTests.map((test) => (
-                <div key={test.id} className="bg-gray-50 p-4 rounded-lg">
-                  <div className="font-medium text-gray-900 mb-1">{test.name}</div>
-                  <div className="text-sm text-gray-500 mb-2">{test.date}</div>
-                  <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
-                    test.status === 'Completed' ? 'bg-green-100 text-green-800' : 
-                    test.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {test.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop View */}
-            <div className="hidden sm:block">
-              <TableWrapper>
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test Name</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {recentTests.map((test) => (
-                      <tr key={test.id}>
-                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{test.name}</td>
-                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{test.date}</td>
-                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
-                            test.status === 'Completed' ? 'bg-green-100 text-green-800' : 
-                            test.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {test.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </TableWrapper>
-            </div>
-          </div>
-        </div>
-
-        {/* Upcoming Appointments */}
-        <div className="mt-6 sm:mt-8">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow overflow-hidden">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
-              <FaCalendarCheck className="mr-2 text-indigo-600" />
-              Upcoming Appointments
-            </h2>
-            <div className="space-y-4">
-              {upcomingAppointments.map(appointment => (
-                <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">{appointment.test}</h3>
-                    <p className="text-sm text-gray-600">
-                      {appointment.date} at {appointment.time}
-                    </p>
-                    <p className="text-sm text-gray-600">{appointment.doctor}</p>
+        {stats && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-yellow-100 p-3 rounded-full mr-4">
+                    <FaCalendarCheck className="text-yellow-600 text-xl" />
                   </div>
-                  <button className="text-indigo-600 hover:text-indigo-800">
-                    View Details
-                  </button>
+                  <div>
+                    <p className="text-sm text-gray-500">Booked Tests</p>
+                    <p className="text-xl font-semibold">{stats.bookingStats.booked}</p>
+                  </div>
                 </div>
-              ))}
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-blue-100 p-3 rounded-full mr-4">
+                    <FaSpinner className="text-blue-600 text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Processing</p>
+                    <p className="text-xl font-semibold">{stats.bookingStats.processing}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-green-100 p-3 rounded-full mr-4">
+                    <FaClipboardCheck className="text-green-600 text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Completed</p>
+                    <p className="text-xl font-semibold">{stats.bookingStats.completed}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-red-100 p-3 rounded-full mr-4">
+                    <FaTimesCircle className="text-red-600 text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Cancelled</p>
+                    <p className="text-xl font-semibold">{stats.bookingStats.cancelled}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Recent Reports */}
-        <div className="mt-6 sm:mt-8">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow overflow-hidden">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
-              <FaFileAlt className="mr-2 text-indigo-600" />
-              Recent Reports
-            </h2>
-            
-          </div>
-        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Test Bookings */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Recent Test Bookings</h2>
+                  <Link to="/patient/bookings" className="text-sm text-indigo-600 hover:text-indigo-800">View All</Link>
+                </div>
+                <div className="space-y-4">
+                  {stats.recentBookings.length > 0 ? (
+                    stats.recentBookings.map((booking) => (
+                      <div key={booking.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="font-medium">{booking.test.name}</h3>
+                            <p className="text-sm text-gray-500">Dr. {booking.doctor.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              booking.status === 'processing' || booking.status === 'sample_collected' ? 'bg-blue-100 text-blue-800' :
+                              booking.status === 'booked' ? 'bg-yellow-100 text-yellow-800' :
+                              booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {booking.status.replace('_', ' ').charAt(0).toUpperCase() + booking.status.replace('_', ' ').slice(1)}
+                            </span>
+                            <p className="text-xs text-gray-500 mt-1">{new Date(booking.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No recent test bookings</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Recent Test Reports */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">
+                    Recent Reports
+                    {stats.unreadReports > 0 && (
+                      <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                        {stats.unreadReports} New
+                      </span>
+                    )}
+                  </h2>
+                  <Link to="/patient/reports" className="text-sm text-indigo-600 hover:text-indigo-800">View All</Link>
+                </div>
+                <div className="space-y-4">
+                  {stats.recentReports.length > 0 ? (
+                    stats.recentReports.map((report) => (
+                      <div key={report.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="font-medium">{report.testBooking.test.name}</h3>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <FaFileAlt className="mr-1" />
+                              <span>Report #{report.id}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Link 
+                              to={`/patient/reports/${report.id}`}
+                              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                            >
+                              View Report
+                            </Link>
+                            <p className="text-xs text-gray-500 mt-1">{new Date(report.validated_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No reports available</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   );
 };
 
-export default PatientDashboardPage;
+export default Dashboard;

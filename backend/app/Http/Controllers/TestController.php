@@ -242,4 +242,14 @@ class TestController extends Controller
             ], 500);
         }
     }
+
+    public function show($id)
+    {
+        try {
+            $test = Test::with('parameters')->findOrFail($id);
+            return response()->json($test);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Test not found'], 404);
+        }
+    }
 }

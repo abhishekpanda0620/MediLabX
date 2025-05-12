@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaCheck, FaFlask, FaClipboardCheck, FaFileAlt, FaTimesCircle, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaCheck, FaFlask, FaClipboardCheck, FaFileAlt, FaTimesCircle, FaPlus, FaDownload, FaEye } from 'react-icons/fa';
 import { MdOutlineDone } from 'react-icons/md';
 import Layout from '../../components/Layout';
 import { 
@@ -12,8 +12,12 @@ import {
   getAllTests,
   getAllPatients,
   getAllDoctors,
-  bookTest
+  bookTest,
+  getTestWithParameters,
+  downloadTestReport,
+  getTestReports 
 } from '../../services/api';
+import GenerateReportModal from '../../components/reports/GenerateReportModal'; 
 
 const SampleManagement = () => {
   // State for samples in different statuses
@@ -39,6 +43,13 @@ const SampleManagement = () => {
   });
   const [bookingErrors, setBookingErrors] = useState({});
 
+  // Fix: Remove redundant state and keep only one set of report modal state
+  const [showGenerateReportModal, setShowGenerateReportModal] = useState(false);
+  const [selectedSampleForReport, setSelectedSampleForReport] = useState(null);
+  const [reportModalLoading, setReportModalLoading] = useState(false);
+  const [isEditingReport, setIsEditingReport] = useState(false); // New state to track if editing existing report
+  const [viewOnly, setViewOnly] = useState(false); // Add viewOnly state
+
   // Tabs for the different statuses
   const tabs = [
     { id: 'booked', label: 'Booked', color: 'yellow' },
@@ -52,12 +63,35 @@ const SampleManagement = () => {
     fetchSamples(activeTab);
   }, [activeTab]);
 
+  // Fetch samples with their reports
   const fetchSamples = async (status) => {
     try {
       setLoading(true);
       // Use the status directly as the parameter name
       const response = await getTestBookings({ status: status });
-      setSamples(response);
+      
+      // If in processing tab, fetch reports for each sample
+      if (status === 'processing') {
+        // Add a delay to ensure reports are fetched
+        const samplesWithReports = await Promise.all(response.map(async (sample) => {
+          try {
+            const reports = await getTestReports({ test_booking_id: sample.id });
+            return {
+              ...sample,
+              hasReport: reports && reports.length > 0,
+              report: reports && reports.length > 0 ? reports[0] : null
+            };
+          } catch (err) {
+            console.error(`Error fetching reports for sample ${sample.id}:`, err);
+            return { ...sample, hasReport: false };
+          }
+        }));
+        
+        setSamples(samplesWithReports);
+      } else {
+        setSamples(response);
+      }
+      
       setError(null);
     } catch (err) {
       setError(`Failed to fetch samples in ${status} status`);
@@ -211,6 +245,220 @@ const SampleManagement = () => {
     }
   };
 
+  // Updated to handle existing reports
+  const handleGenerateReport = async (sample) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log("Sample for report generation:", sample);
+      
+      // Check if the sample already has a report
+      let existingReport = null;
+      if (sample.hasReport && sample.report) {
+        console.log("Sample already has a report:", sample.report);
+        existingReport = sample.report;
+        setIsEditingReport(true);
+      } else {
+        // Fetch reports for this test booking to double check
+        const reports = await getTestReports({ test_booking_id: sample.id });
+        console.log("Fetched reports:", reports);
+        
+        if (reports && reports.length > 0) {
+          existingReport = reports[0];
+          console.log("Found existing report:", existingReport);
+          setIsEditingReport(true);
+        } else {
+          setIsEditingReport(false);
+        }
+      }
+      
+      // Always fetch the complete test data with parameters
+      const completeTest = await getTestWithParameters(sample.test.id);
+      console.log("Fetched complete test:", completeTest);
+      
+      if (completeTest && completeTest.parameters && completeTest.parameters.length > 0) {
+        // Create a properly formatted test data object for the modal
+        const formattedTestData = {
+          id: sample.id,
+          test: {
+            ...completeTest,
+            name: completeTest.name || sample.test?.name,
+          },
+          parameters: completeTest.parameters.map(param => {
+            // If editing existing report, pre-fill with existing values
+            if (existingReport && existingReport.test_results) {
+              const existingResult = existingReport.test_results.find(
+                r => r.parameter_id === param.id
+              );
+              
+              if (existingResult) {
+                return {
+                  ...param,
+                  value: existingResult.value
+                };
+              }
+            }
+            return param;
+          }),
+          patient: sample.patient,
+          lab_technician: sample.lab_technician,
+          existing_report: existingReport // Pass the existing report to the modal
+        };
+        
+        console.log("Formatted test data for modal:", formattedTestData);
+        
+        setSelectedSampleForReport(formattedTestData);
+        setShowGenerateReportModal(true);
+      } else {
+        setError("No parameters found for this test. Please contact the administrator to add test parameters.");
+      }
+    } catch (err) {
+      console.error("Error preparing report:", err);
+      setError('Failed to prepare report: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Updated function to properly find and download reports
+  const handleDownloadReport = async (sample) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log("Sample for download:", sample);
+      
+      // Try different ways to get the report ID
+      let reportId = null;
+      
+      // Method 1: Check if report_id is directly available
+      if (sample.report_id) {
+        reportId = sample.report_id;
+        console.log("Found direct report_id:", reportId);
+      } 
+      // Method 2: Check if latest_report or test_report property exists
+      else if (sample.latest_report?.id) {
+        reportId = sample.latest_report.id;
+        console.log("Found report via latest_report:", reportId);
+      } 
+      else if (sample.test_report?.id) {
+        reportId = sample.test_report.id;
+        console.log("Found report via test_report:", reportId);
+      }
+      // Method 3: If no report ID found, fetch reports for this test booking
+      else {
+        console.log("No direct report ID found, fetching reports...");
+        try {
+          // Fetch all reports for this test booking
+          const reports = await getTestReports({ test_booking_id: sample.id });
+          console.log("Fetched reports:", reports);
+          
+          if (reports && reports.length > 0) {
+            // Get the most recent validated report
+            const validatedReport = reports.find(r => r.status === 'validated');
+            if (validatedReport) {
+              reportId = validatedReport.id;
+              console.log("Found validated report:", reportId);
+            } else {
+              // If no validated report, use the latest report
+              reportId = reports[0].id;
+              console.log("Using latest report:", reportId);
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching reports:", err);
+        }
+      }
+      
+      if (!reportId) {
+        setError("No report found for this test. The report may not have been generated or validated yet.");
+        setLoading(false);
+        return;
+      }
+      
+      console.log("Downloading report with ID:", reportId);
+      
+      // Call the API to download the report
+      const success = await downloadTestReport(reportId);
+      
+      if (!success) {
+        setError("Failed to download the report. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error downloading report:", err);
+      setError('Failed to download report: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add function to handle viewing report details
+  const handleViewReport = async (sample) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log("Sample for view:", sample);
+      
+      // Fetch reports for this test booking
+      const reports = await getTestReports({ test_booking_id: sample.id });
+      console.log("Fetched reports:", reports);
+      
+      if (!reports || reports.length === 0) {
+        setError("No report found for this test");
+        setLoading(false);
+        return;
+      }
+      
+      // Get the latest report
+      const report = reports[0];
+      
+      // Always fetch the complete test data with parameters
+      const completeTest = await getTestWithParameters(sample.test.id);
+      console.log("Fetched complete test:", completeTest);
+      
+      if (completeTest && completeTest.parameters && completeTest.parameters.length > 0) {
+        // Map the test parameters with the values from the report
+        const parametersWithValues = completeTest.parameters.map(param => {
+          const resultEntry = report.test_results.find(r => r.parameter_id === param.id);
+          return {
+            ...param,
+            value: resultEntry ? resultEntry.value : ''
+          };
+        });
+        
+        // Create a properly formatted test data object for the modal
+        const formattedTestData = {
+          id: sample.id,
+          test: {
+            ...completeTest,
+            name: completeTest.name || sample.test?.name,
+          },
+          parameters: parametersWithValues,
+          patient: sample.patient,
+          lab_technician: sample.lab_technician,
+          pathologist: sample.pathologist,
+          existing_report: report
+        };
+        
+        console.log("Formatted test data for view:", formattedTestData);
+        
+        // Set view only mode
+        setViewOnly(true);
+        setSelectedSampleForReport(formattedTestData);
+        setShowGenerateReportModal(true);
+      } else {
+        setError("Could not load test parameters");
+      }
+    } catch (err) {
+      console.error("Error fetching report details:", err);
+      setError('Failed to load report details: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredSamples = samples.filter(sample => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -246,27 +494,70 @@ const SampleManagement = () => {
         );
       case 'processing':
         return (
-          <button
-            onClick={() => handleMarkReviewed(sample.id)}
-            className="bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-700 flex items-center"
-            disabled={loading}
-          >
-            <FaClipboardCheck className="mr-1" /> Mark Reviewed
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleGenerateReport(sample)}
+              className="bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700 flex items-center"
+              disabled={loading}
+            >
+              <FaFileAlt className="mr-1" /> 
+              {sample.hasReport ? 'Edit Report' : 'Generate Report'}
+            </button>
+            <button
+              onClick={() => handleMarkReviewed(sample.id)}
+              className="bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-700 flex items-center"
+              disabled={loading}
+            >
+              <FaClipboardCheck className="mr-1" /> Mark Reviewed
+            </button>
+          </div>
         );
       case 'reviewed':
         return (
-          <button
-            onClick={() => handleMarkCompleted(sample.id)}
-            className="bg-gray-600 text-white px-3 py-1 rounded-md hover:bg-gray-700 flex items-center"
-            disabled={loading}
-          >
-            <MdOutlineDone className="mr-1" /> Mark Completed
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleViewReport(sample)}
+              className="bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700 flex items-center"
+              disabled={loading}
+            >
+              <FaEye className="mr-1" /> View Report
+            </button>
+            <button
+              onClick={() => handleMarkCompleted(sample.id)}
+              className="bg-gray-600 text-white px-3 py-1 rounded-md hover:bg-gray-700 flex items-center"
+              disabled={loading}
+            >
+              <MdOutlineDone className="mr-1" /> Mark Completed
+            </button>
+          </div>
+        );
+      case 'completed':
+        return (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleViewReport(sample)}
+              className="bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700 flex items-center"
+              disabled={loading}
+            >
+              <FaEye className="mr-1" /> View Report
+            </button>
+            <button
+              onClick={() => handleDownloadReport(sample)}
+              className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 flex items-center"
+              disabled={loading}
+            >
+              <FaDownload className="mr-1" /> Download PDF
+            </button>
+          </div>
         );
       default:
         return null;
     }
+  };
+
+  // Add a refresh function to update the UI after generating or editing a report
+  const refreshCurrentTab = async () => {
+    await fetchSamples(activeTab);
   };
 
   return (
@@ -323,7 +614,8 @@ const SampleManagement = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className={`  ${activeTab=='completed'?'hidden':'flex'} px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase`}>Actions</th>
+                  {/* Update the Actions column to be visible for all tabs */}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -334,7 +626,8 @@ const SampleManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {new Date(sample.created_at).toLocaleDateString()}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm  ${activeTab=='completed'?'hidden':'flex'} gap-2`}>
+                    {/* Update the Actions cell to be visible for all tabs */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
                       {getActionButton(sample)}
                       
                       {activeTab !== 'completed' && (
@@ -523,6 +816,24 @@ const SampleManagement = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Generate Report Modal */}
+      {showGenerateReportModal && selectedSampleForReport && (
+        <GenerateReportModal
+          isOpen={showGenerateReportModal}
+          onClose={() => {
+            setShowGenerateReportModal(false);
+            setSelectedSampleForReport(null);
+            setIsEditingReport(false);
+            setViewOnly(false); // Reset viewOnly state
+            refreshCurrentTab(); // Refresh the UI after closing the modal
+          }}
+          testData={selectedSampleForReport}
+          patientData={selectedSampleForReport.patient || {}}
+          isEditing={isEditingReport}
+          viewOnly={viewOnly}
+        />
       )}
     </Layout>
   );

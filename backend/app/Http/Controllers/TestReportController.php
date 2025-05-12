@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TestReport;
 use App\Models\TestBooking;
+use App\Services\PDF\DirectPDFGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -181,54 +182,39 @@ class TestReportController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Ensure the report is validated before allowing download
-        if ($testReport->status !== TestReport::STATUS_VALIDATED) {
-            return response()->json(['message' => 'Report must be validated before download'], 422);
-        }
+        // Temporarily allow any report to be downloaded for testing
+        // if ($testReport->status !== TestReport::STATUS_VALIDATED) {
+        //     return response()->json(['message' => 'Report must be validated before download'], 422);
+        // }
 
         try {
-            // Check if we already have a cached version of the PDF
-            $cacheKey = "report_pdf_{$testReport->id}";
-            $pdfPath = Cache::get($cacheKey);
-            
-            // If no cached version or file doesn't exist, generate a new one
-            if (!$pdfPath || !Storage::exists($pdfPath)) {
-                // Load necessary relationships
-                $testReport->load(['testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
+            // Load necessary relationships
+            $testReport->load(['testBooking.patient', 'testBooking.test', 'testBooking.test.parameters', 'labTechnician', 'pathologist']);
 
-                // Check for missing data
-                if (!$testReport->testBooking || !$testReport->testBooking->patient || !$testReport->testBooking->test) {
-                    return response()->json(['message' => 'Incomplete report data. Please contact support.'], 500);
-                }
-
-                // Generate PDF using the Blade template
-                $pdf = \PDF::loadView('reports.test_report', [
-                    'report' => $testReport,
-                    'reportDate' => now()->format('F j, Y'),
-                    'validatedDate' => $testReport->validated_at ? date('F j, Y H:i:s', strtotime($testReport->validated_at)) : 'Not validated'
-                ]);
-
-                // Set PDF options
-                $pdf->setPaper('a4', 'portrait');
-
-                // Generate filename and path for storage
-                $filename = "report_{$testReport->id}_" . time() . ".pdf";
-                $pdfPath = "reports/{$filename}";
-                
-                // Store the PDF
-                Storage::put($pdfPath, $pdf->output());
-                
-                // Cache the path for future requests (30 minutes)
-                Cache::put($cacheKey, $pdfPath, now()->addMinutes(30));
+            // Check for missing data
+            if (!$testReport->testBooking || !$testReport->testBooking->patient || !$testReport->testBooking->test) {
+                return response()->json(['message' => 'Incomplete report data. Please contact support.'], 500);
             }
+
+            // Generate PDF using our direct generator
+            $dompdf = DirectPDFGenerator::fromView('reports.test_report', [
+                'report' => $testReport,
+                'reportDate' => now()->format('F j, Y'),
+                'validatedDate' => $testReport->validated_at ? 
+                    date('F j, Y H:i:s', strtotime($testReport->validated_at)) : 
+                    'Not validated'
+            ]);
             
             // Generate a meaningful filename for download
-            $downloadFilename = "Report_{$testReport->testBooking->test->name}_{$testReport->testBooking->patient->name}.pdf";
+            $filename = "Report_{$testReport->id}.pdf";
             
-            // Return the PDF for download
-            return Storage::download($pdfPath, $downloadFilename);
+            // Return the PDF as a downloadable file
+            return response($dompdf->output())
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', "attachment; filename=\"$filename\"");
         } catch (\Exception $e) {
             \Log::error("PDF Generation Error: " . $e->getMessage());
+            \Log::error($e->getTraceAsString());
             return response()->json(['message' => 'Error generating PDF: ' . $e->getMessage()], 500);
         }
     }

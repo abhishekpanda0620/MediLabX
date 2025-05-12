@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Test extends Model
 {
@@ -130,5 +132,14 @@ class Test extends Model
         }
 
         return $details;
+    }
+
+    /**
+     * The packages that include this test
+     */
+    public function packages(): BelongsToMany
+    {
+        return $this->belongsToMany(TestPackage::class, 'test_package_test')
+            ->withTimestamps();
     }
 }

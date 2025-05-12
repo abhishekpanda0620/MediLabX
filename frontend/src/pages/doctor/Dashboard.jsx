@@ -1,54 +1,172 @@
-import React from 'react';
-import { FaUsers, FaFileAlt, FaCalendarAlt, FaBell } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaUserInjured, FaCalendarCheck, FaFileAlt, FaClock } from 'react-icons/fa';
 import Layout from '../../components/Layout';
+import { getDoctorDashboardStats } from '../../services/api';
+import { Link } from 'react-router-dom';
 
-const DoctorDashboard = () => {
-  const stats = [
-    { id: 1, name: 'Assigned Patients', value: '12', icon: FaUsers, color: 'bg-blue-500' },
-    { id: 2, name: 'Pending Reports', value: '4', icon: FaFileAlt, color: 'bg-green-500' },
-    { id: 3, name: 'Appointments', value: '5', icon: FaCalendarAlt, color: 'bg-yellow-500' },
-    { id: 4, name: 'Notifications', value: '3', icon: FaBell, color: 'bg-purple-500' },
-  ];
+const Dashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const recentActivity = [
-    { id: 1, action: 'New patient assigned', time: '1 hour ago' },
-    { id: 2, action: 'Report submitted', time: '3 hours ago' },
-    { id: 3, action: 'Appointment rescheduled', time: '1 day ago' },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getDoctorDashboardStats();
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load dashboard statistics');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <div className="text-center py-10">
+            <div className="text-gray-500">Loading dashboard statistics...</div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Doctor Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {stats.map((stat) => (
-            <div key={stat.id} className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center">
-                <div className={`${stat.color} p-3 rounded-full`}>
-                  <stat.icon className="text-white text-xl" />
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 text-red-700 border border-red-400 rounded">
+            {error}
+          </div>
+        )}
+
+        {stats && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-indigo-100 p-3 rounded-full mr-4">
+                    <FaUserInjured className="text-indigo-600 text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">My Patients</p>
+                    <p className="text-xl font-semibold">{stats.patientCount}</p>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-gray-500 text-sm">{stat.name}</p>
-                  <p className="text-2xl font-semibold text-gray-800">{stat.value}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-blue-100 p-3 rounded-full mr-4">
+                    <FaCalendarCheck className="text-blue-600 text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Total Test Bookings</p>
+                    <p className="text-xl font-semibold">{stats.bookingStats.total}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-green-100 p-3 rounded-full mr-4">
+                    <FaFileAlt className="text-green-600 text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Complete Reports</p>
+                    <p className="text-xl font-semibold">{stats.reportStats.totalValidated}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center">
+                  <div className="bg-yellow-100 p-3 rounded-full mr-4">
+                    <FaClock className="text-yellow-600 text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Pending Reports</p>
+                    <p className="text-xl font-semibold">{stats.reportStats.pending}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            {recentActivity.map(act => (
-              <div key={act.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <span>{act.action}</span>
-                <span className="text-sm text-gray-500">{act.time}</span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Recent Test Bookings */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Recent Test Bookings</h2>
+                  <Link to="/doctor/bookings" className="text-sm text-indigo-600 hover:text-indigo-800">View All</Link>
+                </div>
+                <div className="space-y-4">
+                  {stats.recentBookings.length > 0 ? (
+                    stats.recentBookings.map((booking) => (
+                      <div key={booking.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="font-medium">{booking.patient.name}</h3>
+                            <p className="text-sm text-gray-500">{booking.test.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              booking.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                              booking.status === 'booked' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            </span>
+                            <p className="text-xs text-gray-500 mt-1">{new Date(booking.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No recent bookings</p>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
+
+              {/* Latest Reports */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Latest Reports</h2>
+                  <Link to="/doctor/reports" className="text-sm text-indigo-600 hover:text-indigo-800">View All</Link>
+                </div>
+                <div className="space-y-4">
+                  {stats.latestReports.length > 0 ? (
+                    stats.latestReports.map((report) => (
+                      <div key={report.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="font-medium">{report.testBooking.patient.name}</h3>
+                            <p className="text-sm text-gray-500">{report.testBooking.test.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Validated</span>
+                            <p className="text-xs text-gray-500 mt-1">{new Date(report.validated_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No validated reports</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   );
 };
 
-export default DoctorDashboard;
+export default Dashboard;

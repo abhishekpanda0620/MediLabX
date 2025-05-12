@@ -141,6 +141,17 @@ export const bookTest = async (testData) => {
   return response.data;
 };
 
+// Get a single test with complete parameters
+export const getTestWithParameters = async (testId) => {
+  try {
+    const response = await api.get(`/test-templates/${testId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching test parameters:", error);
+    throw error;
+  }
+};
+
 /* =================== 🔹 REPORTS API 🔹 =================== */
 // Get reports for a patient
 export const getPatientReports = async (patientId) => {
@@ -169,10 +180,10 @@ export const bookAppointment = async (appointmentData) => {
 
 /* =================== 🔹 ADMIN API 🔹 =================== */
 // Get dashboard statistics
-export const getAdminDashboardStats = async () => {
-  const response = await api.get("/admin/stats");
-  return response.data;
-};
+// export const getAdminDashboardStats = async () => {
+//   const response = await api.get("/admin/dashboard-stats");
+//   return response.data;
+// };
 
 // Manage staff (Add or remove)
 export const manageStaff = async (staffData) => {
@@ -202,12 +213,17 @@ export const submitTestReport = async (reportId, data) => {
 // Download test report
 export const downloadTestReport = async (reportId) => {
   try {
+    console.log("Attempting to download report ID:", reportId);
+    
     const response = await api.get(`/reports/${reportId}/download`, {
       responseType: 'blob' // Ensure the response is treated as a file
     });
     
-    // Check if the response is valid
-    if (response.data.type && response.data.type.includes('application/json')) {
+    console.log("Download response received:", response);
+    
+    // Check if the response is valid blob and not JSON error
+    const contentType = response.headers['content-type'];
+    if (contentType && contentType.includes('application/json')) {
       // This means we got an error response instead of a PDF
       const reader = new FileReader();
       reader.onload = function() {
@@ -216,7 +232,7 @@ export const downloadTestReport = async (reportId) => {
         alert(`Failed to download report: ${error.message || 'Unknown error'}`);
       };
       reader.readAsText(response.data);
-      return;
+      return false;
     }
 
     // Create a download link for the file
@@ -234,7 +250,7 @@ export const downloadTestReport = async (reportId) => {
     return true;
   } catch (error) {
     console.error('Error downloading report:', error);
-    alert('Failed to download report. Please try again later.');
+    alert('Failed to download report. Please check browser console for details.');
     return false;
   }
 };
@@ -368,4 +384,66 @@ export const getAllDoctors = async () => {
       { id: 2, name: "Dr. Michael Brown" }
     ];
   }
+};
+
+/* =================== 🔹 TEST PACKAGES API 🔹 =================== */
+// Get all test packages
+export const getTestPackages = async () => {
+  const response = await api.get('/test-packages');
+  return response.data;
+};
+
+// Get a single test package
+export const getTestPackage = async (packageId) => {
+  const response = await api.get(`/test-packages/${packageId}`);
+  return response.data;
+};
+
+// Create a new test package
+export const createTestPackage = async (packageData) => {
+  const response = await api.post('/test-packages', packageData);
+  return response.data;
+};
+
+// Update an existing test package
+export const updateTestPackage = async (packageId, packageData) => {
+  const response = await api.put(`/test-packages/${packageId}`, packageData);
+  return response.data;
+};
+
+// Delete a test package
+export const deleteTestPackage = async (packageId) => {
+  const response = await api.delete(`/test-packages/${packageId}`);
+  return response.data;
+};
+
+// Get available tests for creating packages
+export const getAvailableTests = async () => {
+  const response = await api.get('/available-tests');
+  return response.data;
+};
+
+/* =================== 🔹 DASHBOARD STATS API 🔹 =================== */
+// Get admin dashboard statistics
+export const getAdminDashboardStats = async () => {
+  const response = await api.get("/admin/dashboard-stats");
+  return response.data;
+};
+
+// Get doctor dashboard statistics
+export const getDoctorDashboardStats = async () => {
+  const response = await api.get("/doctor/dashboard-stats");
+  return response.data;
+};
+
+// Get lab technician dashboard statistics
+export const getLabDashboardStats = async () => {
+  const response = await api.get("/lab/dashboard-stats");
+  return response.data;
+};
+
+// Get patient dashboard statistics
+export const getPatientDashboardStats = async () => {
+  const response = await api.get("/patient/dashboard-stats");
+  return response.data;
 };

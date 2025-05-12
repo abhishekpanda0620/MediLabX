@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaVials, FaUserFriends, FaChartBar, FaCog, FaBell, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaFileAlt } from 'react-icons/fa';
+import { FaHome, FaVials, FaUserFriends, FaChartBar, FaCog, FaBell, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaFileAlt, FaTag } from 'react-icons/fa';
 import { useAuth } from '../context/authContext';
 
 const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
@@ -11,6 +11,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
       { path: '/admin/dashboard', label: 'Dashboard', icon: FaHome },
       { path: '/admin/staff', label: 'Staff Management', icon: FaUserFriends },
       { path: '/admin/tests', label: 'Test Management', icon: FaVials },
+      { path: '/admin/test-packages', label: 'Test Packages', icon: FaTag },
       { path: '/admin/billing', label: 'Billing', icon: FaChartBar },
     ],
     doctor: [
@@ -39,11 +40,11 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
   const commonMenu = menuItems.common;
 
   return (
-    <div className={`bg-indigo-700 text-white ${isCollapsed ? 'w-16' : 'w-64'} transition-all duration-300 h-screen hidden md:flex flex-col`}>
+    <div className={`bg-indigo-700  text-white ${isCollapsed ? 'w-16' : 'w-64'} transition-all duration-300 max-h-screen overflow-y-auto hidden md:flex flex-col`}>
       <button onClick={toggleCollapse} className="p-2 flex items-center justify-center hover:bg-indigo-600">
         {isCollapsed ? <FaChevronRight cla /> : <FaChevronLeft />}
       </button>
-      <nav className="mt-4 flex-grow">
+      <nav className="mt-4 flex-grow ">
         {[...roleMenu, ...commonMenu].map((item) => (
           <Link key={item.path} to={item.path} className="block py-2 px-4 hover:bg-indigo-600">
             <item.icon className="inline-block mr-2" />
@@ -51,9 +52,9 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
           </Link>
         ))}
       </nav>
-      <button onClick={logout} className="block py-2 px-4 hover:bg-indigo-600 w-full text-left flex items-center">
+      <button onClick={logout} className=" py-2 px-4 hover:bg-indigo-600 w-full text-left flex items-center">
         <FaSignOutAlt className="mr-2" />
-        Logout
+        {!isCollapsed?'Logout':''}
       </button>
     </div>
   );

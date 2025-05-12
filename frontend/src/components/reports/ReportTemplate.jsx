@@ -87,86 +87,107 @@ const styles = StyleSheet.create({
     borderTop: '1pt solid #666',
     marginTop: 40,
     paddingTop: 5
+  },
+  watermark: {
+    position: 'absolute',
+    top: '40%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 60,
+    color: 'rgba(211, 211, 211, 0.4)',
+    transform: 'rotate(-45deg)',
+    zIndex: -1,
   }
 });
 
-const ReportTemplate = ({ data }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.title}>MediLabX</Text>
-        <Text style={styles.subtitle}>Laboratory Test Report</Text>
-      </View>
+const ReportTemplate = ({ data }) => {
+  const isDraft = data.status && data.status.includes('DRAFT');
+  
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {isDraft && (
+          <View style={styles.watermark}>
+            <Text>DRAFT</Text>
+          </View>
+        )}
+        
+        <View style={styles.header}>
+          <Text style={styles.title}>MediLabX</Text>
+          <Text style={styles.subtitle}>Laboratory Test Report</Text>
+        </View>
 
-      <View style={styles.grid}>
-        <View style={styles.col}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Patient Information</Text>
-            <View style={styles.row}>
-              <Text style={styles.label}>Name</Text>
-              <Text style={styles.value}>{data.patientName}</Text>
+        <View style={styles.grid}>
+          <View style={styles.col}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Patient Information</Text>
+              <View style={styles.row}>
+                <Text style={styles.label}>Name</Text>
+                <Text style={styles.value}>{data.patientName}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Patient ID</Text>
+                <Text style={styles.value}>{data.patientId}</Text>
+              </View>
             </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Patient ID</Text>
-              <Text style={styles.value}>{data.patientId}</Text>
+          </View>
+
+          <View style={styles.col}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Test Information</Text>
+              <View style={styles.row}>
+                <Text style={styles.label}>Test Type</Text>
+                <Text style={styles.value}>{data.testType}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Test Date</Text>
+                <Text style={styles.value}>{data.testDate}</Text>
+              </View>
             </View>
           </View>
         </View>
 
-        <View style={styles.col}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Test Information</Text>
-            <View style={styles.row}>
-              <Text style={styles.label}>Test Type</Text>
-              <Text style={styles.value}>{data.testType}</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Test Results</Text>
+          <View style={styles.table}>
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <Text style={styles.tableCell}>Parameter</Text>
+              <Text style={styles.tableCell}>Result</Text>
+              <Text style={styles.tableCell}>Unit</Text>
+              <Text style={styles.tableCell}>Normal Range</Text>
+              <Text style={styles.tableCell}>Status</Text>
             </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Test Date</Text>
-              <Text style={styles.value}>{data.testDate}</Text>
-            </View>
+            {data.parameters.map((param, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{param.name}</Text>
+                <Text style={styles.tableCell}>{param.value}</Text>
+                <Text style={styles.tableCell}>{param.unit}</Text>
+                <Text style={styles.tableCell}>{param.range}</Text>
+                <Text style={styles.tableCell}>{param.status}</Text>
+              </View>
+            ))}
           </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Test Results</Text>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={styles.tableCell}>Parameter</Text>
-            <Text style={styles.tableCell}>Result</Text>
-            <Text style={styles.tableCell}>Unit</Text>
-            <Text style={styles.tableCell}>Normal Range</Text>
-            <Text style={styles.tableCell}>Status</Text>
-          </View>
-          {data.parameters.map((param, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.tableCell}>{param.name}</Text>
-              <Text style={styles.tableCell}>{param.value}</Text>
-              <Text style={styles.tableCell}>{param.unit}</Text>
-              <Text style={styles.tableCell}>{param.range}</Text>
-              <Text style={styles.tableCell}>{param.status}</Text>
+        <View style={styles.footer}>
+          <View style={styles.signatures}>
+            <View style={styles.signatureBox}>
+              <Text style={styles.signatureLine}>{data.labTechnician}</Text>
+              <Text style={styles.label}>Lab Technician</Text>
             </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <View style={styles.signatures}>
-          <View style={styles.signatureBox}>
-            <Text style={styles.signatureLine}>{data.labTechnician}</Text>
-            <Text style={styles.label}>Lab Technician</Text>
+            <View style={styles.signatureBox}>
+              <Text style={styles.signatureLine}>{data.pathologist}</Text>
+              <Text style={styles.label}>Pathologist</Text>
+            </View>
           </View>
-          <View style={styles.signatureBox}>
-            <Text style={styles.signatureLine}>{data.pathologist}</Text>
-            <Text style={styles.label}>Pathologist</Text>
-          </View>
+          <Text style={[styles.label, { marginTop: 20, textAlign: 'center' }]}>
+            Report generated on {data.reportDate}
+          </Text>
         </View>
-        <Text style={[styles.label, { marginTop: 20, textAlign: 'center' }]}>
-          Report generated on {data.reportDate}
-        </Text>
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+};
 
 export default ReportTemplate;

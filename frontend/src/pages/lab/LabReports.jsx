@@ -47,18 +47,30 @@ const LabReports = () => {
         });
       }, 3000);
     } catch (err) {
-      setError('Failed to send notification: ' + (err.response?.data?.message || err.message));
+      console.error('Notification error:', err);
+      setError(`Failed to send notification: ${err.message || 'Unknown error'}`);
       setNotificationStatus(prev => ({ ...prev, [reportId]: 'error' }));
+      
+      // Reset error notification status after 5 seconds
+      setTimeout(() => {
+        setNotificationStatus(prev => {
+          const newStatus = { ...prev };
+          delete newStatus[reportId];
+          return newStatus;
+        });
+      }, 5000);
     }
   };
 
   const handleDownload = async (reportId) => {
     try {
-      // Trigger the backend to generate and download the report
-      await downloadTestReport(reportId);
+      const downloadSuccessful = await downloadTestReport(reportId);
+      if (!downloadSuccessful) {
+        setError('Failed to download report. Please ensure the report is validated and try again.');
+      }
     } catch (error) {
       console.error('Error downloading report:', error);
-      alert('Failed to generate or download the report. Please ensure the report is validated and try again.');
+      setError('Failed to generate or download the report. Please try again later.');
     }
   };
   
@@ -97,7 +109,7 @@ const LabReports = () => {
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="p-6 max-h-screen overflow-auto">
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">Lab Reports</h1>
           <div className="mt-4 sm:mt-0 relative">

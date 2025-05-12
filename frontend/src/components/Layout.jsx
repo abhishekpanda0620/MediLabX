@@ -51,16 +51,16 @@ const Layout = ({ children }) => {
           />
         )}
 
-        <main className={`flex-grow p-4 bg-gray-50 ${shouldShowSidebar ? 'md:ml-0' : ''}`}>
+        <main className={`flex-grow p-4 max-h-screen overflow-y-auto bg-gray-50 ${shouldShowSidebar ? 'md:ml-0' : ''}`}>
           {children}
         </main>
       </div>
 
-      <footer className="bg-indigo-700 text-slate-300 p-1 text-center">
+      {/* <footer className="bg-indigo-700 text-slate-300 p-1 text-center">
         <div className="container mx-auto text-sm md:text-base font-semibold">
           &copy; 2025 MediLabX. All rights reserved.
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 };
