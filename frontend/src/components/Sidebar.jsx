@@ -10,8 +10,10 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
     admin: [
       { path: '/admin/dashboard', label: 'Dashboard', icon: FaHome },
       { path: '/admin/staff', label: 'Staff Management', icon: FaUserFriends },
+      // { path: '/admin/patients', label: 'Patient Management', icon: FaUserFriends },
       { path: '/admin/tests', label: 'Test Management', icon: FaVials },
       { path: '/admin/test-packages', label: 'Test Packages', icon: FaTag },
+
       { path: '/admin/billing', label: 'Billing', icon: FaChartBar },
     ],
     doctor: [

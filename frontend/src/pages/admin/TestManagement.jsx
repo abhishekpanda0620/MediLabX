@@ -6,7 +6,7 @@ import EditTestModal from '../../components/test/EditTestModal';
 import DeleteTestModal from '../../components/test/DeleteTestModal';
 import ViewTestModal from '../../components/test/ViewTestModal';
 import { getAllTests, createTest, updateTest, deleteTest } from '../../services/api';
-import TableWrapper from '../../components/common/TableWrapper';
+import { DataTable, DataTableHelpers, Alert, FormField } from '../../components/common';
 
 const TestManagement = () => {
   const [tests, setTests] = useState([]);
@@ -101,6 +101,118 @@ const TestManagement = () => {
     setValidationErrors({});
   };
 
+  // Table column definitions for DataTable
+  const columns = [
+    {
+      header: 'Name',
+      accessor: 'name',
+    },
+    {
+      header: 'Parameters',
+      accessor: 'parameters',
+      render: (test) => test.parameters.length
+    },
+    {
+      header: 'Created At',
+      accessor: 'created_at',
+      render: (test) => new Date(test.created_at).toLocaleDateString()
+    },
+    {
+      header: 'Updated At',
+      accessor: 'updated_at',
+      render: (test) => new Date(test.updated_at).toLocaleDateString()
+    },
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      render: (test) => (
+        <div className="flex space-x-3">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedTest(test);
+              setIsViewModalOpen(true);
+            }}
+            className="text-indigo-600 hover:text-indigo-900"
+            title="View test details"
+          >
+            <FaEye />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              clearErrors();
+              setSelectedTest(test);
+              setIsEditModalOpen(true);
+            }}
+            className="text-indigo-600 hover:text-indigo-900"
+            title="Edit test"
+          >
+            <FaEdit />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              clearErrors();
+              setSelectedTest(test);
+              setIsDeleteModalOpen(true);
+            }}
+            className="text-red-600 hover:text-red-900"
+            title="Delete test"
+          >
+            <FaTrash />
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  // Define mobile cards render function
+  const renderMobileCard = (test) => (
+    <div key={test.id} className="bg-white rounded-lg shadow-sm mb-4 p-4">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <h3 className="font-medium text-gray-900">{test.name}</h3>
+          <p className="text-sm text-gray-500">{test.parameters.length} parameters</p>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              setSelectedTest(test);
+              setIsViewModalOpen(true);
+            }}
+            className="text-indigo-600 text-xl hover:text-indigo-900"
+          >
+            <FaEye />
+          </button>
+          <button
+            onClick={() => {
+              clearErrors();
+              setSelectedTest(test);
+              setIsEditModalOpen(true);
+            }}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            <FaEdit />
+          </button>
+          <button
+            onClick={() => {
+              clearErrors();
+              setSelectedTest(test);
+              setIsDeleteModalOpen(true);
+            }}
+            className="text-red-600 hover:text-red-900"
+          >
+            <FaTrash />
+          </button>
+        </div>
+      </div>
+      <div className="text-sm text-gray-500">
+        Updated {new Date(test.updated_at).toLocaleDateString()}
+      </div>
+    </div>
+  );
+
   return (
     <Layout>
       <div className="p-6">
@@ -119,129 +231,46 @@ const TestManagement = () => {
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {error}
-          </div>
+          <Alert
+            type="error"
+            title={error}
+            onDismiss={() => setError(null)}
+          />
         )}
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-4 border-b">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search tests..."
-                className="w-full pl-10 pr-4 py-2 outline-none border-[1.5px] rounded-lg"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
+            <FormField
+              id="search-tests"
+              type="text"
+              placeholder="Search tests..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              icon={<FaSearch className="text-gray-400" />}
+            />
           </div>
 
           {/* Mobile View */}
           <div className="block lg:hidden">
-            {filteredTests.map((test) => (
-              <div key={test.id} className="bg-white rounded-lg shadow-sm mb-4 p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{test.name}</h3>
-                    <p className="text-sm text-gray-500">{test.parameters.length} parameters</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        setSelectedTest(test);
-                        setIsViewModalOpen(true);
-                      }}
-                      className="text-indigo-600 text-xl hover:text-indigo-900"
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      onClick={() => {
-                        clearErrors();
-                        setSelectedTest(test);
-                        setIsEditModalOpen(true);
-                      }}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => {
-                        clearErrors();
-                        setSelectedTest(test);
-                        setIsDeleteModalOpen(true);
-                      }}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Updated {new Date(test.updated_at).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
+            {filteredTests.length > 0 ? (
+              filteredTests.map(renderMobileCard)
+            ) : (
+              <div className="py-8 text-center text-gray-500">No tests found</div>
+            )}
           </div>
 
           {/* Desktop View */}
           <div className="hidden lg:block">
-            <TableWrapper>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parameters</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredTests.map((test) => (
-                    <tr key={test.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">{test.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{test.parameters.length}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{new Date(test.created_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{new Date(test.updated_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => {
-                            setSelectedTest(test);
-                            setIsViewModalOpen(true);
-                          }}
-                          className="text-indigo-600 hover:text-indigo-900 mr-3"
-                        >
-                          <FaEye />
-                        </button>
-                        <button
-                          onClick={() => {
-                            clearErrors();
-                            setSelectedTest(test);
-                            setIsEditModalOpen(true);
-                          }}
-                          className="text-indigo-600 hover:text-indigo-900 mr-3"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => {
-                            clearErrors();
-                            setSelectedTest(test);
-                            setIsDeleteModalOpen(true);
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </TableWrapper>
+            <DataTable
+              columns={columns}
+              data={filteredTests}
+              loading={loading}
+              emptyMessage="No tests found"
+              onRowClick={(test) => {
+                setSelectedTest(test);
+                setIsViewModalOpen(true);
+              }}
+            />
           </div>
         </div>
       </div>

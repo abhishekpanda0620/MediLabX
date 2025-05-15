@@ -42,6 +42,8 @@ export const protectedRoutes = {
   admin: [
     { path: '/admin/dashboard', element: AdminDashboard },
     { path: '/admin/staff', element: StaffManagement },
+    { path: '/admin/patients', element: PatientManagement },
+
     { path: '/admin/tests', element: TestManagement },
     { path: '/admin/billing', element: BillingManagement },
     { path: '/admin/lab-tests', element: TestCatalog }, // NEW
