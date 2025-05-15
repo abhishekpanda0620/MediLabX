@@ -153,10 +153,7 @@ const TestPackages = () => {
                     </ul>
                   </div>
                   
-                  <div className="mt-4 text-sm text-gray-600">
-                    <p><span className="font-medium">Total Value:</span> ₹{pkg.total_regular_price}</p>
-                    <p><span className="font-medium">You Save:</span> ₹{pkg.savings} ({pkg.savings_percentage}%)</p>
-                  </div>
+              
                   
                   {!pkg.is_active && (
                     <div className="mt-2">

@@ -179,16 +179,42 @@ export const bookAppointment = async (appointmentData) => {
 };
 
 /* =================== 🔹 ADMIN API 🔹 =================== */
-// Get dashboard statistics
-// export const getAdminDashboardStats = async () => {
-//   const response = await api.get("/admin/dashboard-stats");
-//   return response.data;
-// };
 
-// Manage staff (Add or remove)
-export const manageStaff = async (staffData) => {
-  const response = await api.post("/admin/staff", staffData);
+
+// Staff Management API
+export const getAllStaff = async () => {
+  const response = await api.get("/staffs");
   return response.data;
+};
+
+export const getStaffMember = async (id) => {
+  const response = await api.get(`/staffs/${id}`);
+  return response.data;
+};
+
+export const createStaffMember = async (staffData) => {
+  const response = await api.post("/staffs", staffData);
+  return response.data;
+};
+
+export const updateStaffMember = async (id, staffData) => {
+  const response = await api.put(`/staffs/${id}`, staffData);
+  return response.data;
+};
+
+export const deleteStaffMember = async (id) => {
+  const response = await api.delete(`/staffs/${id}`);
+  return response.data;
+};
+
+export const searchStaff = async (searchParams) => {
+  const response = await api.get("/staffs/search", { params: searchParams });
+  return response.data;
+};
+
+export const getStaffRoles = async () => {
+  const response = await api.get("/staff-roles");
+  return response.data.roles;
 };
 
 /* =================== 🔹 TEST REPORTS API 🔹 =================== */

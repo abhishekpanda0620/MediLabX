@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,       // Seeds roles & permissions
             UserSeeder::class,       // Seeds users with roles
             TestSeeder::class,       // Seeds common pathology tests
+            TestPackageSeeder::class, // Seeds health test packages
         ]);
     }
 }

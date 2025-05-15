@@ -15,6 +15,7 @@ class TestBooking extends Model
         'pathologist_id',
         'doctor_id',
         'test_id',
+        'test_package_id',
         'status',
         'notes',
         'sample_collection_time',
@@ -55,6 +56,10 @@ class TestBooking extends Model
 
     public function test() {
         return $this->belongsTo(Test::class);
+    }
+    
+    public function testPackage() {
+        return $this->belongsTo(TestPackage::class);
     }
 
     public function markSampleCollected($labTechnicianId) {

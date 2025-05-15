@@ -14,6 +14,7 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\TestPackageController;
 use App\Services\PDF\DirectPDFGenerator;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StaffController;
 
 // Public authentication routes
 Route::post('register', [AuthController::class, 'register']);
@@ -48,6 +49,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('lab-technicians', LabTechnicianController::class);
     // Route::apiResource('pathologists', PathologistController::class);
     Route::apiResource('doctors', DoctorController::class);
+
+    Route::apiResource('staffs', StaffController::class);
+    Route::get('/staffs/search', [StaffController::class, 'search']);
+    Route::get('/staff-roles', [StaffController::class, 'getRoles']);
+
 
     // Test Templates routes
     Route::get('/test-templates', [TestController::class, 'getAllTestTemplates']);
@@ -100,3 +106,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/lab/dashboard-stats', [DashboardController::class, 'labStats']);
     Route::get('/patient/dashboard-stats', [DashboardController::class, 'patientStats']);
 });
+

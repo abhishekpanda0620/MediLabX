@@ -50,8 +50,9 @@ class TestBookingController extends Controller
     {
         $request->validate([
             'patient_id' => 'required|exists:users,id',
-            'test_id' => 'required|exists:tests,id',
             'doctor_id' => 'required|exists:users,id',
+            'test_id' => 'required_without:test_package_id|exists:tests,id',
+            'test_package_id' => 'required_without:test_id|exists:test_packages,id',
             'notes' => 'nullable|string'
         ]);
 
@@ -67,13 +68,22 @@ class TestBookingController extends Controller
             return response()->json(['message' => 'Invalid doctor ID. User must have doctor role.'], 422);
         }
 
-        $booking = TestBooking::create([
+        // Create booking data array
+        $bookingData = [
             'patient_id' => $request->patient_id,
-            'test_id' => $request->test_id,
             'doctor_id' => $request->doctor_id,
             'status' => TestBooking::STATUS_BOOKED,
             'notes' => $request->notes
-        ]);
+        ];
+        
+        // Add either test_id or test_package_id
+        if ($request->has('test_id')) {
+            $bookingData['test_id'] = $request->test_id;
+        } else {
+            $bookingData['test_package_id'] = $request->test_package_id;
+        }
+        
+        $booking = TestBooking::create($bookingData);
 
         return response()->json($booking->load(['patient', 'test', 'doctor']), 201);
     }
