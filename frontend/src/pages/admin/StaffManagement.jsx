@@ -213,7 +213,7 @@ const StaffManagement = () => {
       <div className="p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Staff Management</h1>
-          <p className="text-gray-600">Manage laboratory staff members and their roles</p>
+          {/* <p className="text-gray-600">Manage laboratory staff members and their roles</p> */}
         </div>
 
         {error && (

@@ -218,16 +218,7 @@ const TestManagement = () => {
       <div className="p-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold text-gray-800">Test Management</h1>
-          <button 
-            onClick={() => {
-              clearErrors();
-              setIsAddModalOpen(true);
-            }}
-            className="flex cursor-pointer items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full lg:w-auto justify-center"
-          >
-            <FaPlus className="mr-2" />
-            Add New Test
-          </button>
+     
         </div>
 
         {error && (
@@ -238,8 +229,11 @@ const TestManagement = () => {
           />
         )}
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-4 border-b">
+        <div className=" rounded-lg  ">
+          <div className="p-4 border-b ">
+            <div className='w-[80%]'>
+
+            </div>
             <FormField
               id="search-tests"
               type="text"
@@ -248,6 +242,16 @@ const TestManagement = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               icon={<FaSearch className="text-gray-400" />}
             />
+          <button 
+            onClick={() => {
+              clearErrors();
+              setIsAddModalOpen(true);
+            }}
+            className="flex cursor-pointer items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full lg:w-auto justify-center"
+          >
+            <FaPlus className="mr-2" />
+            Add New Test
+          </button>
           </div>
 
           {/* Mobile View */}
