@@ -86,20 +86,4 @@ const Modal = ({
   );
 };
 
-/**
- * A footer component for modals with standardized styling
- * 
- * @param {Object} props
- * @param {React.ReactNode} props.children - Footer content
- * @param {string} props.className - Additional CSS classes
- * @returns {React.ReactElement}
- */
-export const ModalFooter = ({ children, className = "" }) => {
-  return (
-    <div className={`flex justify-end gap-3 ${className}`}>
-      {children}
-    </div>
-  );
-};
-
 export default Modal;

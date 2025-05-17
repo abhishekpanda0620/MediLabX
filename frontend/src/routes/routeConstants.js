@@ -13,6 +13,8 @@ export const ROUTES = {
   // Protected Routes - Admin
   ADMIN_DASHBOARD: '/admin/dashboard',
   STAFF_MANAGEMENT: '/admin/staff',
+  DOCTOR_MANAGEMENT: '/admin/doctors',
+  PATIENT_MANAGEMENT: '/admin/patients',
   TEST_MANAGEMENT: '/admin/tests',
   BILLING_MANAGEMENT: '/admin/billing',
 

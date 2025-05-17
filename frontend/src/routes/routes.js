@@ -10,9 +10,10 @@ import AdminDashboard from '../pages/admin/Dashboard';
 import StaffManagement from '../pages/admin/StaffManagement';
 import TestManagement from '../pages/admin/TestManagement';
 import BillingManagement from '../pages/admin/BillingManagement';
+import DoctorManagement from '../pages/admin/DoctorManagement';
 
 import DoctorDashboard from '../pages/doctor/Dashboard';
-import PatientManagement from '../pages/doctor/PatientManagement';
+
 import ReportGeneration from '../pages/doctor/ReportGeneration';
 
 import LabDashboard from '../pages/lab/Dashboard';
@@ -23,6 +24,7 @@ import GenerateReport from '../pages/lab/GenerateReport'; // NEW
 
 import Settings from '../pages/common/Settings';
 import Notifications from '../pages/common/Notifications';
+import PatientManagement from '../pages/admin/PatientManagement';
 
 export const publicRoutes = [
   { path: '/', element: Home },
@@ -43,7 +45,7 @@ export const protectedRoutes = {
     { path: '/admin/dashboard', element: AdminDashboard },
     { path: '/admin/staff', element: StaffManagement },
     { path: '/admin/patients', element: PatientManagement },
-
+    { path: '/admin/doctors', element: DoctorManagement },
     { path: '/admin/tests', element: TestManagement },
     { path: '/admin/billing', element: BillingManagement },
     { path: '/admin/lab-tests', element: TestCatalog }, // NEW

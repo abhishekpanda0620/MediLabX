@@ -9,11 +9,11 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
   const menuItems = {
     admin: [
       { path: '/admin/dashboard', label: 'Dashboard', icon: FaHome },
-      { path: '/admin/staff', label: 'Staff Management', icon: FaUserFriends },
-      // { path: '/admin/patients', label: 'Patient Management', icon: FaUserFriends },
+      { path: '/admin/staff', label: 'Staffs', icon: FaUserFriends },
+      { path: '/admin/doctors', label: 'Doctors', icon: FaUserFriends },
+      { path: '/admin/patients', label: 'Patients', icon: FaUserFriends },
       { path: '/admin/tests', label: 'Test Management', icon: FaVials },
       { path: '/admin/test-packages', label: 'Test Packages', icon: FaTag },
-
       { path: '/admin/billing', label: 'Billing', icon: FaChartBar },
     ],
     doctor: [
@@ -24,8 +24,8 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
     lab_technician: [
       { path: '/lab', label: 'Dashboard', icon: FaHome },
       { path: '/lab/samples', label: 'Samples', icon: FaVials },
-      { path: '/lab/reports', label: 'Reports', icon: FaChartBar },
-      { path: '/lab/generate-report', label: 'Generate Report', icon: FaFileAlt },
+      // { path: '/lab/reports', label: 'Reports', icon: FaChartBar },
+      // { path: '/lab/generate-report', label: 'Generate Report', icon: FaFileAlt },
     ],
     patient: [
       { path: '/patient/dashboard', label: 'Dashboard', icon: FaHome },

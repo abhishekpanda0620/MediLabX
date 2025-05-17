@@ -1,42 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { FaUserPlus, FaSearch, FaEdit, FaTrash, FaUser, FaEnvelope, FaIdCard, FaPhone, FaCalendar, FaVenusMars } from 'react-icons/fa';
 import Layout from '../../components/Layout';
-import { DataTable, DataTableHelpers, Modal, ModalFooter, FormField, ConfirmationDialog, Alert } from '../../components/common';
-
-// This is an example component to demonstrate the use of shared components
-// In a real application, you would connect this to actual API services
+import { DataTable, DataTableHelpers, Modal, ConfirmationDialog, Alert, Button } from '../../components/common';
+import ModalFooter from '../../components/common/ModalFooter';
+import { getAllPatients, createPatient, updatePatient, deletePatient } from '../../services/api';
+import PatientForm from '../../components/patients/PatientForm';
 
 const PatientManagement = () => {
-  // Example patients data
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      gender: 'Male',
-      dob: '1985-05-15',
-      phone: '123-456-7890',
-      status: 'Active'
-    },
-    {
-      id: 2,
-      name: 'Jane Doe',
-      email: 'jane.doe@example.com',
-      gender: 'Female',
-      dob: '1990-08-22',
-      phone: '987-654-3210',
-      status: 'Active'
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike.johnson@example.com',
-      gender: 'Male',
-      dob: '1978-12-03',
-      phone: '555-123-4567',
-      status: 'Inactive'
-    }
-  ]);
+  const [patients, setPatients] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -61,22 +32,22 @@ const PatientManagement = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState(null);
 
-  // Search functionality (example implementation)
-  const handleSearch = () => {
-    if (!searchQuery.trim()) {
-      // Reset to full list
-      return;
-    }
+  // Fetch all patients from API
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
+  const fetchPatients = async () => {
     setLoading(true);
-    setTimeout(() => {
-      const filteredPatients = patients.filter(patient => 
-        patient.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        patient.email.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setPatients(filteredPatients);
+    try {
+      const data = await getAllPatients();
+      setPatients(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch patients: ' + (err.response?.data?.message || err.message));
+    } finally {
       setLoading(false);
-    }, 500); // Simulate API delay
+    }
   };
 
   // Handle form input changes
@@ -100,12 +71,10 @@ const PatientManagement = () => {
   const validateForm = () => {
     const errors = {};
     
-    if (!formData.name.trim()) errors.name = 'Name is required';
-    if (!formData.email.trim()) errors.email = 'Email is required';
-    if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
-    if (!formData.gender) errors.gender = 'Gender is required';
-    if (!formData.dob) errors.dob = 'Date of Birth is required';
-    if (!formData.phone.trim()) errors.phone = 'Phone number is required';
+    if (!formData.name?.trim()) errors.name = 'Name is required';
+    if (!formData.email?.trim()) errors.email = 'Email is required';
+    if (formData.email?.trim() && !/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
+    if (!formData.phone?.trim()) errors.phone = 'Phone number is required';
     
     return errors;
   };
@@ -116,11 +85,16 @@ const PatientManagement = () => {
     setFormData({
       name: '',
       email: '',
-      gender: '',
-      dob: '',
       phone: '',
+      gender: '',
+      date_of_birth: '',
+      address: '',
+      medical_history: '',
+      blood_group: '',
+      emergency_contact: ''
     });
     setFormErrors({});
+    setCurrentPatient(null);
     setShowModal(true);
   };
 
@@ -129,11 +103,15 @@ const PatientManagement = () => {
     setModalMode('edit');
     setCurrentPatient(patient);
     setFormData({
-      name: patient.name,
-      email: patient.email,
-      gender: patient.gender,
-      dob: patient.dob,
-      phone: patient.phone,
+      name: patient.name || '',
+      email: patient.email || '',
+      phone: patient.phone || '',
+      gender: patient.gender || '',
+      date_of_birth: patient.date_of_birth || '',
+      address: patient.address || '',
+      medical_history: patient.medical_history || '',
+      blood_group: patient.blood_group || '',
+      emergency_contact: patient.emergency_contact || ''
     });
     setFormErrors({});
     setShowModal(true);
@@ -145,22 +123,25 @@ const PatientManagement = () => {
     setShowConfirmation(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!patientToDelete) return;
     
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setPatients(patients.filter(p => p.id !== patientToDelete.id));
+    try {
+      await deletePatient(patientToDelete.id);
+      await fetchPatients();
       setShowConfirmation(false);
       setPatientToDelete(null);
+    } catch (err) {
+      setError('Failed to delete patient: ' + (err.response?.data?.message || err.message));
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   // Submit form (add or edit patient)
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
     
     // Validate form
     const errors = validateForm();
@@ -171,46 +152,75 @@ const PatientManagement = () => {
 
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
       if (modalMode === 'add') {
-        const newPatient = {
-          id: Date.now(), // Generate temporary ID
+        // Create new patient with user account
+        await createPatient({
           ...formData,
-          status: 'Active'
-        };
-        setPatients([...patients, newPatient]);
+          create_user: true,
+          is_active: true
+        });
       } else {
         // Update existing patient
-        setPatients(patients.map(p => 
-          p.id === currentPatient.id ? { ...p, ...formData } : p
-        ));
+        await updatePatient(currentPatient.id, formData);
       }
       
+      // Refresh patients list
+      await fetchPatients();
       setShowModal(false);
+    } catch (err) {
+      setError('Failed to save patient: ' + (err.response?.data?.message || err.message));
+      if (err.response?.data?.errors) {
+        setFormErrors(err.response.data.errors);
+      }
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+
+  // Search functionality
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      fetchPatients();
+      return;
+    }
+
+    // Filter patients locally based on search query
+    const searchTermLower = searchQuery.toLowerCase();
+    const filteredPatients = patients.filter(patient => 
+      patient.name?.toLowerCase().includes(searchTermLower) || 
+      patient.email?.toLowerCase().includes(searchTermLower) ||
+      patient.phone?.toLowerCase().includes(searchTermLower)
+    );
+    setPatients(filteredPatients);
   };
 
   // DataTable columns definition
   const columns = [
     { header: 'Name', accessor: 'name', className: 'font-medium text-gray-800' },
     { header: 'Email', accessor: 'email', className: 'text-gray-600' },
-    { header: 'Phone', accessor: 'phone' },
+    { header: 'Phone', accessor: 'phone', render: (patient) => patient.phone || '-' },
     { 
       header: 'Gender', 
       accessor: 'gender',
       render: (patient) => (
-        <span className="capitalize">{patient.gender}</span>
+        <span className="capitalize">{patient.gender || '-'}</span>
+      )
+    },
+    { 
+      header: 'Blood Group', 
+      accessor: 'blood_group',
+      render: (patient) => (
+        <span className="font-medium">{patient.blood_group || '-'}</span>
       )
     },
     { 
       header: 'Status', 
-      accessor: 'status',
+      accessor: 'is_active',
       render: (patient) => (
         <DataTableHelpers.Badge 
-          text={patient.status} 
-          type={patient.status === 'Active' ? 'success' : 'warning'} 
+          text={patient.is_active ? 'Active' : 'Inactive'} 
+          type={patient.is_active ? 'success' : 'warning'} 
         />
       )
     },
@@ -273,6 +283,7 @@ const PatientManagement = () => {
           <button 
             className="flex items-center px-5 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 shadow-md hover:shadow-lg transition-all duration-200"
             onClick={handleAddPatient}
+            type="button"
           >
             <FaUserPlus className="mr-2" />
             Add New Patient
@@ -295,7 +306,7 @@ const PatientManagement = () => {
         title={modalMode === 'add' ? 'Add New Patient' : 'Edit Patient'}
         icon={modalMode === 'add' ? <FaUserPlus /> : <FaEdit />}
         footer={
-          <>
+          <div className="flex justify-end space-x-4">
             <ModalFooter.CancelButton onClick={() => setShowModal(false)} />
             <ModalFooter.SubmitButton
               onClick={handleSubmit}
@@ -303,75 +314,15 @@ const PatientManagement = () => {
               isLoading={loading}
               disabled={loading}
             />
-          </>
+          </div>
         }
         size="md"
       >
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }}>
-          <FormField
-            id="name"
-            name="name"
-            label="Full Name"
-            type="text"
-            value={formData.name}
-            onChange={handleInputChange}
-            error={formErrors.name}
-            icon={<FaUser className="text-gray-400" />}
-            placeholder="Enter patient name"
-            required
-          />
-          
-          <FormField
-            id="email"
-            name="email"
-            label="Email Address"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            error={formErrors.email}
-            icon={<FaEnvelope className="text-gray-400" />}
-            placeholder="Enter patient email"
-            required
-          />
-          
-          <FormField
-            id="phone"
-            name="phone"
-            label="Phone Number"
-            type="text"
-            value={formData.phone}
-            onChange={handleInputChange}
-            error={formErrors.phone}
-            icon={<FaPhone className="text-gray-400" />}
-            placeholder="Enter phone number"
-            required
-          />
-          
-          <FormField
-            id="dob"
-            name="dob"
-            label="Date of Birth"
-            type="date"
-            value={formData.dob}
-            onChange={handleInputChange}
-            error={formErrors.dob}
-            icon={<FaCalendar className="text-gray-400" />}
-            required
-          />
-          
-          <FormField
-            id="gender"
-            name="gender"
-            label="Gender"
-            type="select"
-            value={formData.gender}
-            onChange={handleInputChange}
-            error={formErrors.gender}
-            icon={<FaVenusMars className="text-gray-400" />}
-            options={['Male', 'Female', 'Other']}
-            required
-          />
-        </form>
+        <PatientForm
+          patientData={formData}
+          onChange={handleInputChange}
+          errors={formErrors}
+        />
       </Modal>
 
       {/* Delete Confirmation Dialog */}

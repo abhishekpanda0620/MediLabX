@@ -1,9 +1,13 @@
 import TableWrapper from './TableWrapper';
 import DataTable, { DataTableHelpers } from './DataTable';
-import Modal, { ModalFooter } from './Modal';
+import Modal from './Modal';
+import ModalFooter from './ModalFooter';
 import FormField from './FormField';
 import ConfirmationDialog from './ConfirmationDialog';
 import Alert from './Alert';
+import Badge from './Badge';
+import Button from './Button';
+import Table from './Table';
 
 export {
   TableWrapper,
@@ -13,5 +17,8 @@ export {
   ModalFooter,
   FormField,
   ConfirmationDialog,
-  Alert
+  Alert,
+  Badge,
+  Button,
+  Table
 };

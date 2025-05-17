@@ -389,13 +389,54 @@ export const getAllPatients = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching patients:", error);
-    // Return some dummy data if API fails
-    return [
-      { id: 1, name: "John Doe" },
-      { id: 2, name: "Jane Smith" }
-    ];
+    throw error;
   }
 };
+
+// Get a single patient
+export const getPatient = async (id) => {
+  try {
+    const response = await api.get(`/patients/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching patient ${id}:`, error);
+    throw error;
+  }
+};
+
+// Create a new patient
+export const createPatient = async (patientData) => {
+  try {
+    const response = await api.post('/patients', patientData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating patient:", error);
+    throw error;
+  }
+};
+
+// Update a patient
+export const updatePatient = async (id, patientData) => {
+  try {
+    const response = await api.put(`/patients/${id}`, patientData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating patient ${id}:`, error);
+    throw error;
+  }
+};
+
+// Delete a patient
+export const deletePatient = async (id) => {
+  try {
+    const response = await api.delete(`/patients/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting patient ${id}:`, error);
+    throw error;
+  }
+};
+
 
 // Get all doctors
 export const getAllDoctors = async () => {
@@ -404,11 +445,51 @@ export const getAllDoctors = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching doctors:", error);
-    // Return some dummy data if API fails
-    return [
-      { id: 1, name: "Dr. Sarah Johnson" },
-      { id: 2, name: "Dr. Michael Brown" }
-    ];
+    throw error;
+  }
+};
+
+// Get a single doctor
+export const getDoctor = async (id) => {
+  try {
+    const response = await api.get(`/doctors/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching doctor ${id}:`, error);
+    throw error;
+  }
+};
+
+// Create a new doctor
+export const createDoctor = async (doctorData) => {
+  try {
+    const response = await api.post('/doctors', doctorData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating doctor:", error);
+    throw error;
+  }
+};
+
+// Update a doctor
+export const updateDoctor = async (id, doctorData) => {
+  try {
+    const response = await api.put(`/doctors/${id}`, doctorData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating doctor ${id}:`, error);
+    throw error;
+  }
+};
+
+// Delete a doctor
+export const deleteDoctor = async (id) => {
+  try {
+    const response = await api.delete(`/doctors/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting doctor ${id}:`, error);
+    throw error;
   }
 };
 

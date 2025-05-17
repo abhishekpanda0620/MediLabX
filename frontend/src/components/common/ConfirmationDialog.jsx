@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
-import Modal, { ModalFooter } from './Modal';
+import Modal from './Modal';
+import ModalFooter from './ModalFooter';
 
 /**
  * A reusable confirmation dialog component
@@ -59,7 +60,7 @@ const ConfirmationDialog = ({
 
   // Custom footer with action buttons
   const footer = (
-    <>
+    <div className="flex justify-end space-x-4">
       <ModalFooter.CancelButton 
         onClick={onClose} 
         label={cancelText} 
@@ -80,7 +81,7 @@ const ConfirmationDialog = ({
           disabled={loading}
         />
       )}
-    </>
+    </div>
   );
 
   return (

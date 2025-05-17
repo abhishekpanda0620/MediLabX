@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,       // Seeds roles & permissions
             UserSeeder::class,       // Seeds users with roles
+            PatientSeeder::class,    // Seeds patient data
+            DoctorSeeder::class,     // Seeds doctor data
             TestSeeder::class,       // Seeds common pathology tests
             TestPackageSeeder::class, // Seeds health test packages
         ]);
