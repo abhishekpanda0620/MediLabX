@@ -21,7 +21,9 @@ class TestBooking extends Model
         'sample_collection_time',
         'processing_time',
         'review_time',
-        'completion_time'
+        'completion_time',
+        'delivery_method'
+
     ];
 
     protected $dates = [
@@ -37,9 +39,13 @@ class TestBooking extends Model
     const STATUS_REVIEWED = 'reviewed';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
-
+    
+    const DELIVERY_EMAIL = 'email';
+    const DELIVERY_SMS = 'sms';
+    const DELIVERY_IN_PERSON = 'in_person';
+    
     public function patient() {
-        return $this->belongsTo(User::class, 'patient_id');
+        return $this->belongsTo(Patient::class, 'patient_id');
     }
 
     public function labTechnician() {
@@ -51,7 +57,7 @@ class TestBooking extends Model
     }
 
     public function doctor() {
-        return $this->belongsTo(User::class, 'doctor_id');
+        return $this->belongsTo(Doctor::class, 'doctor_id');
     }
 
     public function test() {
@@ -61,11 +67,38 @@ class TestBooking extends Model
     public function testPackage() {
         return $this->belongsTo(TestPackage::class);
     }
+    
+    /**
+     * Get the test reports associated with this booking
+     */
+    public function reports()
+    {
+        return $this->hasMany(TestReport::class, 'test_booking_id');
+    }
+    
+    /**
+     * Check if this booking has any reports
+     * @return bool
+     */
+    public function hasReport()
+    {
+        // Count the number of reports, and return true if it's > 0
+        $count = $this->reports()->count();
+        \Log::info("TestBooking {$this->id} has {$count} reports");
+        return $count > 0;
+    }
 
     public function markSampleCollected($labTechnicianId) {
         if ($this->status !== self::STATUS_BOOKED) {
             throw new \Exception('Test booking must be in booked state to collect sample');
         }
+        
+        // Make sure lab technician exists
+        $labTechnician = \App\Models\User::find($labTechnicianId);
+        if (!$labTechnician) {
+            throw new \Exception('Lab technician not found');
+        }
+        
         $this->update([
             'status' => self::STATUS_SAMPLE_COLLECTED,
             'lab_technician_id' => $labTechnicianId,
@@ -83,21 +116,39 @@ class TestBooking extends Model
         ]);
     }
 
-    public function markReviewed($pathologistId) {
+    public function markReviewed($userId) {
         if ($this->status !== self::STATUS_PROCESSING) {
             throw new \Exception('Test must be processed before review');
         }
-        $this->update([
-            'status' => self::STATUS_REVIEWED,
-            'pathologist_id' => $pathologistId,
-            'review_time' => now()
-        ]);
+        
+        // Get the user
+        $user = \App\Models\User::find($userId);
+        if (!$user) {
+            throw new \Exception('User not found');
+        }
+        
+        // If it's a pathologist, save their ID
+        if ($user->hasRole('pathologist')) {
+            $this->update([
+                'status' => self::STATUS_REVIEWED,
+                'pathologist_id' => $userId,
+                'review_time' => now()
+            ]);
+        } else {
+            // For lab technicians, just update the status
+            $this->update([
+                'status' => self::STATUS_REVIEWED,
+                'review_time' => now()
+            ]);
+        }
     }
 
-    public function markCompleted($pathologistId) {
+    public function markCompleted($userId) {
         if ($this->status !== self::STATUS_REVIEWED) {
             throw new \Exception('Test must be reviewed before completion');
         }
+        
+        // No need to track which user completed it, just update the status
         $this->update([
             'status' => self::STATUS_COMPLETED,
             'completion_time' => now()

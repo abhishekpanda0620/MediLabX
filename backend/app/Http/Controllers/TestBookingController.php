@@ -17,16 +17,36 @@ class TestBookingController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        // Debug info to help troubleshoot
+        \Log::info('TestBooking index called', [
+            'user_id' => $user->id,
+            'user_roles' => $user->getRoleNames(),
+            'request_params' => $request->all()
+        ]);
+        
         $query = TestBooking::with(['patient', 'labTechnician', 'pathologist', 'doctor', 'test']);
 
         // Filter by user role if no specific status is requested
         if (!$request->has('status')) {
             if ($user->hasRole('patient')) {
-                $query->where('patient_id', $user->id);
+                // If user is a patient, find their patient record and filter by that
+                $patient = \App\Models\Patient::where('user_id', $user->id)->first();
+                if ($patient) {
+                    $query->where('patient_id', $patient->id);
+                }
             } elseif ($user->hasRole('doctor')) {
-                $query->where('doctor_id', $user->id);
+                // If user is a doctor, find their doctor record and filter by that
+                $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $query->where('doctor_id', $doctor->id);
+                }
             } elseif ($user->hasRole('lab_technician')) {
-                $query->whereIn('status', [TestBooking::STATUS_BOOKED, TestBooking::STATUS_SAMPLE_COLLECTED, TestBooking::STATUS_PROCESSING]);
+                // For lab technicians, show all relevant statuses for sample management
+                $query->whereIn('status', [
+                    TestBooking::STATUS_BOOKED, 
+                    TestBooking::STATUS_SAMPLE_COLLECTED, 
+                    TestBooking::STATUS_PROCESSING
+                ]);
             } elseif ($user->hasRole('pathologist')) {
                 $query->whereIn('status', [TestBooking::STATUS_PROCESSING, TestBooking::STATUS_REVIEWED]);
             }
@@ -37,35 +57,53 @@ class TestBookingController extends Controller
             
             // Still apply user role restrictions for security
             if ($user->hasRole('patient')) {
-                $query->where('patient_id', $user->id);
+                $patient = \App\Models\Patient::where('user_id', $user->id)->first();
+                if ($patient) {
+                    $query->where('patient_id', $patient->id);
+                }
             } elseif ($user->hasRole('doctor')) {
-                $query->where('doctor_id', $user->id);
+                $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $query->where('doctor_id', $doctor->id);
+                }
             }
         }
 
-        return response()->json($query->latest()->get());
+        // Get the results and add hasReport attribute to each test booking
+        $testBookings = $query->latest()->get();
+        
+        $testBookings->each(function ($testBooking) {
+            // Explicitly make sure it's a boolean value
+            $hasReport = $testBooking->hasReport() ? true : false;
+            $testBooking->setAttribute('hasReport', $hasReport);
+            
+            // Also log for debugging
+            \Log::info('Test Booking '.$testBooking->id.' hasReport: '.($hasReport ? 'true' : 'false'));
+        });
+
+        return response()->json($testBookings);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'patient_id' => 'required|exists:users,id',
-            'doctor_id' => 'required|exists:users,id',
+            'patient_id' => 'required|exists:patients,id',
+            'doctor_id' => 'required|exists:doctors,id',
             'test_id' => 'required_without:test_package_id|exists:tests,id',
             'test_package_id' => 'required_without:test_id|exists:test_packages,id',
             'notes' => 'nullable|string'
         ]);
 
-        // Check if the provided IDs correspond to users with proper roles
-        $patient = \App\Models\User::find($request->patient_id);
-        $doctor = \App\Models\User::find($request->doctor_id);
+        // Check if the provided patient ID exists
+        $patient = \App\Models\Patient::find($request->patient_id);
+        $doctor = \App\Models\Doctor::find($request->doctor_id);
 
-        if (!$patient || !$patient->hasRole('patient')) {
-            return response()->json(['message' => 'Invalid patient ID. User must have patient role.'], 422);
+        if (!$patient) {
+            return response()->json(['message' => 'Invalid patient ID. Patient not found.'], 422);
         }
 
-        if (!$doctor || !$doctor->hasRole('doctor')) {
-            return response()->json(['message' => 'Invalid doctor ID. User must have doctor role.'], 422);
+        if (!$doctor) {
+            return response()->json(['message' => 'Invalid doctor ID. Doctor not found.'], 422);
         }
 
         // Create booking data array
@@ -91,14 +129,13 @@ class TestBookingController extends Controller
     public function markSampleCollected(Request $request, TestBooking $testBooking)
     {
         try {
-            // Get the lab technician user from the seeded data
-            $labTech = \App\Models\User::where('email', 'lab_technician@example.com')->first();
-            
-            if (!$labTech) {
-                return response()->json(['message' => 'Lab technician not found'], 404);
+            // Get the current user if they are a lab technician
+            $user = Auth::user();
+            if (!$user->hasRole('lab_technician')) {
+                return response()->json(['message' => 'Unauthorized. Only lab technicians can perform this action.'], 403);
             }
             
-            $testBooking->markSampleCollected($labTech->id);
+            $testBooking->markSampleCollected($user->id);
             return response()->json($testBooking->fresh());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -108,14 +145,13 @@ class TestBookingController extends Controller
     public function markProcessing(Request $request, TestBooking $testBooking)
     {
         try {
-            // Get the lab technician user from the seeded data
-            $labTech = \App\Models\User::where('email', 'lab_technician@example.com')->first();
-            
-            if (!$labTech) {
-                return response()->json(['message' => 'Lab technician not found'], 404);
+            // Get the current user if they are a lab technician
+            $user = Auth::user();
+            if (!$user->hasRole('lab_technician')) {
+                return response()->json(['message' => 'Unauthorized. Only lab technicians can perform this action.'], 403);
             }
             
-            $testBooking->markProcessing($labTech->id);
+            $testBooking->markProcessing($user->id);
             return response()->json($testBooking->fresh());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -125,14 +161,13 @@ class TestBookingController extends Controller
     public function markReviewed(Request $request, TestBooking $testBooking)
     {
         try {
-            // Get the pathologist user from the seeded data
-            $pathologist = \App\Models\User::where('email', 'pathologist@example.com')->first();
-            
-            if (!$pathologist) {
-                return response()->json(['message' => 'Pathologist not found'], 404);
+            // Get the current user if they are a pathologist or lab technician
+            $user = Auth::user();
+            if (!$user->hasRole('pathologist') && !$user->hasRole('lab_technician')) {
+                return response()->json(['message' => 'Unauthorized. Only pathologists or lab technicians can perform this action.'], 403);
             }
             
-            $testBooking->markReviewed($pathologist->id);
+            $testBooking->markReviewed($user->id);
             return response()->json($testBooking->fresh());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -142,14 +177,13 @@ class TestBookingController extends Controller
     public function markCompleted(Request $request, TestBooking $testBooking)
     {
         try {
-            // Get the pathologist user from the seeded data
-            $pathologist = \App\Models\User::where('email', 'pathologist@example.com')->first();
-            
-            if (!$pathologist) {
-                return response()->json(['message' => 'Pathologist not found'], 404);
+            // Get the current user if they are a pathologist or lab technician
+            $user = Auth::user();
+            if (!$user->hasRole('pathologist') && !$user->hasRole('lab_technician')) {
+                return response()->json(['message' => 'Unauthorized. Only pathologists or lab technicians can perform this action.'], 403);
             }
             
-            $testBooking->markCompleted($pathologist->id);
+            $testBooking->markCompleted($user->id);
             return response()->json($testBooking->fresh());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -160,9 +194,16 @@ class TestBookingController extends Controller
     {
         $user = Auth::user();
         // Only doctors who created the booking or admin can cancel
-        if (!$user->hasRole('admin') && 
-            !($user->hasRole('doctor') && $testBooking->doctor_id === $user->id)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('admin')) {
+            // If user is a doctor, check if they are associated with this booking
+            if ($user->hasRole('doctor')) {
+                $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
+                if (!$doctor || $testBooking->doctor_id !== $doctor->id) {
+                    return response()->json(['message' => 'Unauthorized'], 403);
+                }
+            } else {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         }
 
         $request->validate([

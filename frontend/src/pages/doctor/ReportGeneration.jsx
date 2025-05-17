@@ -11,7 +11,6 @@ const ReportGeneration = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // ...report generation logic...
-    console.log({ patientName, testDate, testType, reportContent });
   };
 
   return (

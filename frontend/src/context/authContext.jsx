@@ -32,11 +32,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await loginUser(email, password);
-      console.log("Login API response:", response);
       if (response?.token) {
-        localStorage.setItem("token", response.token);
         setUser(response.user); // Set user data from response
-        console.log("User state updated:", response.user);
         return true;
       }
       return false;
@@ -50,7 +47,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await logoutUser();
-      console.log("User logged out");
       navigate("/signin"); 
       localStorage.removeItem("token");
       setUser(null);

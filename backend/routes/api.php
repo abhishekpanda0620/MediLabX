@@ -46,9 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // User roles
     Route::apiResource('patients', PatientController::class);
+    Route::get('/patients/current', [PatientController::class, 'current']);
     Route::apiResource('lab-technicians', LabTechnicianController::class);
     // Route::apiResource('pathologists', PathologistController::class);
     Route::apiResource('doctors', DoctorController::class);
+    Route::get('/doctors/current', [DoctorController::class, 'current']);
 
     Route::apiResource('staffs', StaffController::class);
     Route::get('/staffs/search', [StaffController::class, 'search']);

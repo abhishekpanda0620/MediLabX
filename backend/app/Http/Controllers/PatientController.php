@@ -31,6 +31,26 @@ class PatientController extends Controller
         return response()->json($patient);
     }
 
+    /**
+     * Get the patient record for the current logged-in user
+     */
+    public function current()
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        
+        $patient = Patient::where('user_id', $user->id)->first();
+        
+        if (!$patient) {
+            return response()->json(['message' => 'No patient record found for this user'], 404);
+        }
+        
+        return response()->json($patient);
+    }
+
     // POST /patients
     public function store(Request $request)
     {

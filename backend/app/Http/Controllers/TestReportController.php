@@ -22,25 +22,41 @@ class TestReportController extends Controller
         if ($request->has('showAll') && $request->showAll === 'true') {
             // If showAll is true, we only apply role-based restrictions for non-staff users
             if ($user->hasRole('patient')) {
-                $query->whereHas('testBooking', function ($q) use ($user) {
-                    $q->where('patient_id', $user->id);
-                });
+                // Find the patient record for this user
+                $patient = \App\Models\Patient::where('user_id', $user->id)->first();
+                if ($patient) {
+                    $query->whereHas('testBooking', function ($q) use ($patient) {
+                        $q->where('patient_id', $patient->id);
+                    });
+                }
             } elseif ($user->hasRole('doctor')) {
-                $query->whereHas('testBooking', function ($q) use ($user) {
-                    $q->where('doctor_id', $user->id);
-                });
+                // Find the doctor record for this user
+                $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $query->whereHas('testBooking', function ($q) use ($doctor) {
+                        $q->where('doctor_id', $doctor->id);
+                    });
+                }
             }
             // Lab technicians and pathologists can see all reports with showAll=true
         } else {
             // Standard filtering based on user role
             if ($user->hasRole('patient')) {
-                $query->whereHas('testBooking', function ($q) use ($user) {
-                    $q->where('patient_id', $user->id);
-                });
+                // Find the patient record for this user
+                $patient = \App\Models\Patient::where('user_id', $user->id)->first();
+                if ($patient) {
+                    $query->whereHas('testBooking', function ($q) use ($patient) {
+                        $q->where('patient_id', $patient->id);
+                    });
+                }
             } elseif ($user->hasRole('doctor')) {
-                $query->whereHas('testBooking', function ($q) use ($user) {
-                    $q->where('doctor_id', $user->id);
-                });
+                // Find the doctor record for this user
+                $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $query->whereHas('testBooking', function ($q) use ($doctor) {
+                        $q->where('doctor_id', $doctor->id);
+                    });
+                }
             } elseif ($user->hasRole('lab_technician')) {
                 $query->where('lab_technician_id', $user->id)
                       ->whereIn('status', [TestReport::STATUS_DRAFT, TestReport::STATUS_SUBMITTED, TestReport::STATUS_REJECTED]);
@@ -109,8 +125,8 @@ class TestReportController extends Controller
     public function review(Request $request, TestReport $testReport)
     {
         $user = Auth::user();
-        if (!$user->hasRole('pathologist')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('pathologist') && !$user->hasRole('lab_technician')) {
+            return response()->json(['message' => 'Unauthorized. Only pathologists or lab technicians can perform this action.'], 403);
          }
 
         // Use the User ID directly instead of looking for a pathologist relationship
@@ -135,8 +151,8 @@ class TestReportController extends Controller
     public function validate(Request $request, TestReport $testReport)
     {
         $user = Auth::user();
-        if (!$user->hasRole('pathologist')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('pathologist') && !$user->hasRole('lab_technician')) {
+            return response()->json(['message' => 'Unauthorized. Only pathologists or lab technicians can perform this action.'], 403);
         }
 
         // Use the User ID directly instead of looking for a pathologist relationship
@@ -151,8 +167,8 @@ class TestReportController extends Controller
     public function reject(Request $request, TestReport $testReport)
     {
         $user = Auth::user();
-        if (!$user->hasRole('pathologist')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('pathologist') && !$user->hasRole('lab_technician')) {
+            return response()->json(['message' => 'Unauthorized. Only pathologists or lab technicians can perform this action.'], 403);
         }
 
         // Use the User ID directly instead of looking for a pathologist relationship
@@ -176,8 +192,11 @@ class TestReportController extends Controller
         $user = Auth::user();
 
         // Authorization checks
-        if ($user->hasRole('patient') && $testReport->testBooking->patient_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if ($user->hasRole('patient')) {
+            $patient = \App\Models\Patient::where('user_id', $user->id)->first();
+            if (!$patient || $testReport->testBooking->patient_id !== $patient->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         } elseif ($user->hasRole('doctor') && $testReport->testBooking->doctor_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -227,8 +246,11 @@ class TestReportController extends Controller
         $user = Auth::user();
 
         // Authorization checks (same as download)
-        if ($user->hasRole('patient') && $testReport->testBooking->patient_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if ($user->hasRole('patient')) {
+            $patient = \App\Models\Patient::where('user_id', $user->id)->first();
+            if (!$patient || $testReport->testBooking->patient_id !== $patient->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         } elseif ($user->hasRole('doctor') && $testReport->testBooking->doctor_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }

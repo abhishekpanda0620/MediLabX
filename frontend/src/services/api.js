@@ -220,8 +220,15 @@ export const getStaffRoles = async () => {
 /* =================== 🔹 TEST REPORTS API 🔹 =================== */
 // Get reports for a patient or lab technician
 export const getTestReports = async (filters = {}) => {
-  const response = await api.get('/reports', { params: filters });
-  return response.data;
+  try {
+    const response = await api.get('/reports', { params: filters });
+    console.log('Reports response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching test reports:', error);
+    // Return empty array instead of throwing to prevent breaking the UI
+    return [];
+  }
 };
 
 // Create new test report
@@ -347,8 +354,15 @@ export const getTestResultStatistics = async (parameterId, startDate, endDate) =
 /* =================== 🔹 TEST BOOKINGS API 🔹 =================== */
 // Fetch test bookings with specific filters
 export const getTestBookings = async (filters = {}) => {
-  const response = await api.get('/test-bookings', { params: filters });
-  return response.data;
+  try {
+    console.log('Fetching test bookings with filters:', filters);
+    const response = await api.get('/test-bookings', { params: filters });
+    console.log('Test bookings response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching test bookings:', error);
+    throw error;
+  }
 };
 
 // Mark a sample as collected
@@ -389,6 +403,17 @@ export const getAllPatients = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching patients:", error);
+    throw error;
+  }
+};
+
+// Get the current user's patient record
+export const getCurrentPatient = async () => {
+  try {
+    const response = await api.get('/patients/current');
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching current patient record:", error);
     throw error;
   }
 };
@@ -442,6 +467,7 @@ export const deletePatient = async (id) => {
 export const getAllDoctors = async () => {
   try {
     const response = await api.get('/doctors');
+    console.log("Doctors fetched:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching doctors:", error);
@@ -489,6 +515,20 @@ export const deleteDoctor = async (id) => {
     return response.data;
   } catch (error) {
     console.error(`Error deleting doctor ${id}:`, error);
+    throw error;
+  }
+};
+
+// Get the current user's doctor record
+export const getCurrentDoctor = async () => {
+  try {
+    const response = await api.get('/doctors/current');
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      // No doctor record found for this user
+      return null;
+    }
     throw error;
   }
 };

@@ -25,9 +25,7 @@ const SignIn = () => {
   };
 
   useEffect(() => {
-    console.log("User state updated:", user);
     if (user?.role) {
-      console.log("Navigating to dashboard for role:", user.role);
       switch (user.role) {
         case "admin":
           navigate("/admin/dashboard", { replace: true });

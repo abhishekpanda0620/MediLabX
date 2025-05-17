@@ -8,7 +8,7 @@ import Alert from './Alert';
 import Badge from './Badge';
 import Button from './Button';
 import Table from './Table';
-
+import ErrorBoundary from './ErrorBoundary';
 export {
   TableWrapper,
   DataTable,
@@ -20,5 +20,7 @@ export {
   Alert,
   Badge,
   Button,
-  Table
+  Table,
+  ErrorBoundary,
+
 };

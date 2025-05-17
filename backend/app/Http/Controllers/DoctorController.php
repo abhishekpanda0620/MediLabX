@@ -152,4 +152,26 @@ class DoctorController extends Controller
             return response()->json(['message' => 'Failed to delete doctor', 'error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Get the doctor record for the currently authenticated user
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function current()
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        
+        $doctor = Doctor::where('user_id', $user->id)->first();
+        
+        if (!$doctor) {
+            return response()->json(['message' => 'No doctor record found for this user'], 404);
+        }
+        
+        return response()->json($doctor);
+    }
 }

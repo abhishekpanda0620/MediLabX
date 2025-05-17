@@ -63,15 +63,39 @@ export const useReportForm = (testData, isEditing, viewOnly) => {
     }
   }, [testData, isEditing, viewOnly]);
 
+  // Add debounce function for parameter updates to prevent rapid state changes
+  const [updateTimeout, setUpdateTimeout] = useState(null);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+    };
+  }, [updateTimeout]);
+
   const updateParameterValue = (index, value) => {
-    setParameters(prevParams => {
-      const newParams = [...prevParams];
-      newParams[index] = {
-        ...newParams[index],
-        value: value
-      };
-      return newParams;
-    });
+    // Clear previous timeout
+    if (updateTimeout) {
+      clearTimeout(updateTimeout);
+    }
+    
+    // Set a new timeout to update the value after a small delay
+    const timeoutId = setTimeout(() => {
+      setParameters(prevParams => {
+        const newParams = [...prevParams];
+        if (newParams[index]) {
+          newParams[index] = {
+            ...newParams[index],
+            value: value
+          };
+        }
+        return newParams;
+      });
+    }, 300); // 300ms debounce delay
+    
+    setUpdateTimeout(timeoutId);
   };
 
   const validateData = () => {

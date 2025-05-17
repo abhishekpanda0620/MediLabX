@@ -8,7 +8,6 @@ const AppointmentBooking = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle appointment booking logic here
-    console.log('Appointment booked:', { testType, appointmentDate, paymentInfo });
   };
 
   return (
