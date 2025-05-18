@@ -186,6 +186,32 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+              <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Link to="/lab/create-case" className="bg-indigo-50 hover:bg-indigo-100 p-4 rounded-lg flex flex-col items-center justify-center text-center transition duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-indigo-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <h3 className="font-semibold text-indigo-700 mb-1">Create Case & Report</h3>
+                  <p className="text-sm text-gray-600">Streamlined workflow for quick case creation and report generation</p>
+                </Link>
+                
+                <Link to="/lab/samples" className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg flex flex-col items-center justify-center text-center transition duration-300">
+                  <FaVial className="h-10 w-10 text-blue-600 mb-2" />
+                  <h3 className="font-semibold text-blue-700 mb-1">Sample Management</h3>
+                  <p className="text-sm text-gray-600">Collect, process, and track lab samples</p>
+                </Link>
+                
+                <Link to="/lab/reports" className="bg-green-50 hover:bg-green-100 p-4 rounded-lg flex flex-col items-center justify-center text-center transition duration-300">
+                  <FaFileAlt className="h-10 w-10 text-green-600 mb-2" />
+                  <h3 className="font-semibold text-green-700 mb-1">View Reports</h3>
+                  <p className="text-sm text-gray-600">Access and manage all lab reports</p>
+                </Link>
+              </div>
+            </div>
           </>
         )}
       </div>
