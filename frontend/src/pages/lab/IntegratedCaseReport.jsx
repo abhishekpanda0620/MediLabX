@@ -279,18 +279,42 @@ const IntegratedCaseReport = () => {
       const testParams = await getTestWithParameters(selectedTest.id);
       console.log('Test parameters fetched:', testParams);
       
-      // Prepare data for report modal - match the structure expected by useReportForm
-      // Update status to reflect the current state (processing)
+      // Debug the actual structure of test parameters
+      if (testParams && testParams.parameters) {
+        console.log('Parameters structure:', JSON.stringify(testParams.parameters[0], null, 2));
+      }
+      
+      // Prepare data for report modal - ensure it matches the structure expected by useReportForm
+      const parameters = testParams && testParams.parameters ? 
+        testParams.parameters.map(param => ({
+          id: param.id,
+          name: param.parameter_name, // This is required by ReportParametersSection
+          parameter_name: param.parameter_name,
+          unit: param.unit || '',
+          normal_range: param.normal_range || '',
+          min_range: param.min_range || param.normal_range?.split('-')[0]?.trim(),
+          max_range: param.max_range || param.normal_range?.split('-')[1]?.trim(),
+          value: '', // Required by ReportParametersSection component
+          method: param.method || '',
+          is_qualitative: param.is_qualitative || false,
+          description: param.description || '',
+          age_specific: param.age_specific || false,
+          gender_specific: param.gender_specific || false,
+          critical_low: param.critical_low || null,
+          critical_high: param.critical_high || null
+        })) : [];
+      
       setTestWithParameters({
         id: response.id,
-        status: 'processing', // Update to reflect current state after our state transitions
+        status: 'processing', 
         test: {
           id: selectedTest.id,
           name: selectedTest.name,
           code: selectedTest.code,
           category: selectedTest.category,
-          parameters: testParams.parameters || []
+          parameters: parameters // Add parameters to test object
         },
+        parameters: parameters, // Also add parameters directly to the testData object
         patient: selectedPatient
       });
       
@@ -622,14 +646,17 @@ const IntegratedCaseReport = () => {
       
       {/* Report Generation Modal */}
       {showReportModal && testWithParameters && (
-        <GenerateReportModal
-          isOpen={showReportModal}
-          onClose={handleCloseReportModal}
-          testData={testWithParameters}
-          patientData={selectedPatient}
-          isEditing={false}
-          viewOnly={false}
-        />
+        <>
+          {console.log('Rendering modal with test data:', JSON.stringify(testWithParameters, null, 2))}
+          <GenerateReportModal
+            isOpen={showReportModal}
+            onClose={handleCloseReportModal}
+            testData={testWithParameters}
+            patientData={selectedPatient}
+            isEditing={false}
+            viewOnly={false}
+          />
+        </>
       )}
     </Layout>
   );
