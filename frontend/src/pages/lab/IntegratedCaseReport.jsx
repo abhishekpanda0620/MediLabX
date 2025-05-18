@@ -277,6 +277,7 @@ const IntegratedCaseReport = () => {
       
       // Fetch complete test data with parameters for report generation
       const testParams = await getTestWithParameters(selectedTest.id);
+      console.log('Test parameters fetched:', testParams);
       
       // Prepare data for report modal - match the structure expected by useReportForm
       // Update status to reflect the current state (processing)
@@ -286,8 +287,9 @@ const IntegratedCaseReport = () => {
         test: {
           id: selectedTest.id,
           name: selectedTest.name,
-          code: selectedTest.code
-          // Don't include parameters here - let useReportForm fetch them
+          code: selectedTest.code,
+          category: selectedTest.category,
+          parameters: testParams.parameters || []
         },
         patient: selectedPatient
       });
