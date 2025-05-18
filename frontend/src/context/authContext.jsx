@@ -33,6 +33,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await loginUser(email, password);
       if (response?.token) {
+        localStorage.setItem("token", response.token); // Store token in local storage
+
         setUser(response.user); // Set user data from response
         return true;
       }
@@ -47,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await logoutUser();
-      navigate("/signin"); 
+      navigate("/signin");
       localStorage.removeItem("token");
       setUser(null);
     } catch (error) {
