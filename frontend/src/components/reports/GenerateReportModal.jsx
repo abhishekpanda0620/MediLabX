@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
-import ReportTemplate from './ReportTemplate';
-import { FaDownload, FaUserMd, FaFlask, FaQrcode } from 'react-icons/fa';
+import { FaUserMd, FaFlask, FaQrcode } from 'react-icons/fa';
 import { useReportForm } from '../../hooks/useReportForm';
-import { usePdfGeneration } from '../../hooks/usePdfGeneration';
-import { generateOrUpdateReport } from '../../services/reportService';
 import { createTestReport, submitTestReport, getUserData } from '../../services/api';
 import ReportParametersSection from './ReportParametersSection';
 import ReportInterpretationSection from './ReportInterpretationSection';
-import ErrorBoundary from '../common/ErrorBoundary';
 import { toast } from 'react-toastify';
 
 const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing = false, viewOnly = false }) => {
@@ -28,12 +23,6 @@ const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing
     updateParameterValue,
     validateData
   } = useReportForm(testData, isEditing, viewOnly);
-
-  const {
-    isPdfReady,
-    setIsPdfReady,
-    prepareReportData
-  } = usePdfGeneration();
 
   // Add state for current user
   const [user, setUser] = useState(null);
@@ -120,9 +109,6 @@ const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing
 
   // Add a function to safely close the modal
   const handleClose = () => {
-    // Reset PDF state before closing
-    setIsPdfReady(false);
-    
     // Call the original onClose function
     if (onClose && typeof onClose === 'function') {
       onClose();
@@ -130,9 +116,6 @@ const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing
   };
 
   if (!isOpen) return null;
-
-  // Prepare data for PDF rendering
-  const reportData = prepareReportData(parameters, interpretation, patientData, testData, viewOnly);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
@@ -369,78 +352,7 @@ const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing
                 </div>
               </div>
 
-              {/* PDF Preview Section */}
-              {parameters.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-md font-medium text-gray-700">Report Preview</h3>
-                    {isPdfReady && reportData && (
-                      <ErrorBoundary
-                        fallback={
-                          <button
-                            className="flex items-center px-3 py-1 bg-gray-100 text-gray-500 rounded-md cursor-not-allowed"
-                            disabled
-                          >
-                            <FaDownload className="mr-2" /> PDF Generation Failed
-                          </button>
-                        }
-                      >
-                        <PDFDownloadLink
-                          document={<ReportTemplate data={reportData} />}
-                          fileName={`${patientData?.name || 'patient'}_${testData?.test?.name || 'test'}_${viewOnly ? '' : 'draft_'}report.pdf`}
-                          className="flex items-center px-3 py-1 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 transition-colors"
-                        >
-                        {({ loading }) => 
-                          loading ? 'Preparing PDF...' : (
-                            <>
-                              <FaDownload className="mr-2" /> Download {viewOnly ? '' : 'Draft '}PDF
-                            </>
-                          )
-                        }
-                        </PDFDownloadLink>
-                      </ErrorBoundary>
-                    )}
-                  </div>
-                  <div className="h-[500px]">
-                    {reportData && Object.keys(reportData).length > 0 ? (
-                      <ErrorBoundary
-                        fallback={
-                          <div className="flex items-center justify-center h-full bg-red-50 rounded-md border border-red-200">
-                            <div className="text-center p-6">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                              </svg>
-                              <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Preview Error</h3>
-                              <p className="text-sm text-gray-500 mb-4">
-                                There was an error displaying the PDF preview. This may happen when parameters have incomplete data.
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                You can continue entering values and try again, or save the report without previewing.
-                              </p>
-                            </div>
-                          </div>
-                        }
-                      >
-                        <PDFViewer className="w-full h-full" onRender={() => setIsPdfReady(true)}>
-                          <ReportTemplate data={reportData} />
-                        </PDFViewer>
-                      </ErrorBoundary>
-                    ) : (
-                      <div className="flex items-center justify-center h-full bg-gray-50 rounded-md border border-gray-200">
-                        <div className="text-center p-6">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Preview Not Available</h3>
-                          <p className="text-sm text-gray-500">
-                            Please enter valid values for at least one parameter to generate a PDF preview.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* PDF Preview Section has been removed */}
 
               {/* Lab Accreditation Details */}
               <div className="mb-6 mt-8 border-t pt-4 text-xs text-gray-500">

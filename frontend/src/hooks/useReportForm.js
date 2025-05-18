@@ -20,11 +20,28 @@ export const useReportForm = (testData, isEditing, viewOnly) => {
           setLoadingParameters(true);
           const completeTest = await getTestWithParameters(testData.test.id);
           if (completeTest && completeTest.parameters) {
-            const paramsWithValues = completeTest.parameters.map(param => ({
-              ...param,
-              value: ''
-            }));
-            setParameters(paramsWithValues);
+            // If editing an existing report, merge with existing values
+            if (isEditing && testData.existing_report && testData.existing_report.test_results) {
+              const paramsWithValues = completeTest.parameters.map(param => {
+                // Find matching test result from existing report
+                const existingResult = testData.existing_report.test_results.find(
+                  result => result.parameter_id === param.id
+                );
+                
+                return {
+                  ...param,
+                  value: existingResult ? existingResult.value : ''
+                };
+              });
+              setParameters(paramsWithValues);
+            } else {
+              // New report, initialize with empty values
+              const paramsWithValues = completeTest.parameters.map(param => ({
+                ...param,
+                value: ''
+              }));
+              setParameters(paramsWithValues);
+            }
           } else {
             setError("Could not load test parameters");
           }
@@ -63,39 +80,18 @@ export const useReportForm = (testData, isEditing, viewOnly) => {
     }
   }, [testData, isEditing, viewOnly]);
 
-  // Add debounce function for parameter updates to prevent rapid state changes
-  const [updateTimeout, setUpdateTimeout] = useState(null);
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (updateTimeout) {
-        clearTimeout(updateTimeout);
-      }
-    };
-  }, [updateTimeout]);
-
   const updateParameterValue = (index, value) => {
-    // Clear previous timeout
-    if (updateTimeout) {
-      clearTimeout(updateTimeout);
-    }
-    
-    // Set a new timeout to update the value after a small delay
-    const timeoutId = setTimeout(() => {
-      setParameters(prevParams => {
-        const newParams = [...prevParams];
-        if (newParams[index]) {
-          newParams[index] = {
-            ...newParams[index],
-            value: value
-          };
-        }
-        return newParams;
-      });
-    }, 300); // 300ms debounce delay
-    
-    setUpdateTimeout(timeoutId);
+    // Update parameter value immediately without timeout
+    setParameters(prevParams => {
+      const newParams = [...prevParams];
+      if (newParams[index]) {
+        newParams[index] = {
+          ...newParams[index],
+          value: value
+        };
+      }
+      return newParams;
+    });
   };
 
   const validateData = () => {
@@ -104,7 +100,7 @@ export const useReportForm = (testData, isEditing, viewOnly) => {
 
     parameters.forEach((param, index) => {
       if (!param.value || param.value.trim() === '') {
-        errors[`parameter_${index}`] = `${param.parameter_name} is required`;
+        errors[`parameters.${index}.value`] = `${param.name} is required`;
         isValid = false;
       }
     });

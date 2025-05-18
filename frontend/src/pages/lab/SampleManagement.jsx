@@ -9,6 +9,7 @@ import {
   FaPlus,
   FaDownload,
   FaEye,
+  FaPen,
   FaUserPlus,
   FaUser,
   FaSms,
@@ -591,7 +592,7 @@ const handleDeliverReport = async (sample, method) => {
             // Show patient selection dropdown
             <div className="mt-2">
               <FormField
-                label="Select Patient*"
+                label="Patient"
                 id="patient-select"
                 name="patient_id"
                 type="select"
@@ -613,7 +614,7 @@ const handleDeliverReport = async (sample, method) => {
         <form onSubmit={handleBookTest}>
           <div className="mb-4">
             <FormField
-              label="Select Test*"
+              label=" Test"
               id="test-select"
               name="test_id"
               type="select"
@@ -632,7 +633,7 @@ const handleDeliverReport = async (sample, method) => {
 
           <div className="mb-4">
             <FormField
-              label="Select Doctor*"
+              label="Doctor"
               id="doctor-select"
               name="doctor_id"
               type="select"
@@ -650,7 +651,7 @@ const handleDeliverReport = async (sample, method) => {
           </div>
           <div className="mb-4">
             <FormField
-              label="Report Delivery Method*"
+              label="Report Delivery Method"
               id="delivery-method"
               name="delivery_method"
               type="select"
@@ -896,9 +897,9 @@ const handleDeliverReport = async (sample, method) => {
                               <button
                                 onClick={() => handleViewReport(sample)}
                                 className="text-purple-600 hover:text-purple-900 mr-3"
-                                title="View/Edit Report"
+                                title="Edit Report"
                               >
-                                <FaEye className="inline mr-1" /> Edit Report
+                                <FaPen className="inline mr-1" /> Edit Report
                               </button>
                               <button
                                 onClick={() => handleMarkReviewed(sample.id)}

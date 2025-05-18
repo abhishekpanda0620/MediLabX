@@ -137,7 +137,7 @@ const ReportParametersSection = ({
         <table className="min-w-full border border-gray-300">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 border text-left font-medium text-gray-700">Investigation</th>
+              <th className="px-4 py-2 border text-left font-medium text-gray-700">Test</th>
               <th className="px-4 py-2 border text-left font-medium text-gray-700">Result</th>
               <th className="px-4 py-2 border text-left font-medium text-gray-700">Units</th>
               <th className="px-4 py-2 border text-left font-medium text-gray-700">
@@ -192,17 +192,19 @@ const ReportParametersSection = ({
                   </td>
                   <td className="px-4 py-2 border">
                     {viewOnly ? (
-                      <span className={`font-medium ${statusIndicator?.color ? `text-${statusIndicator.color}-600` : ''}`}>
+                      <span className="font-medium">
                         {param.value}
                       </span>
                     ) : (
-                      <input
-                        type="text"
-                        className={`w-full p-1 border rounded ${validationErrors[`parameters.${index}.value`] ? 'border-red-500' : 'border-gray-300'}`}
-                        value={param.value || ''}
-                        onChange={(e) => updateParameterValue(index, e.target.value)}
-                        placeholder="Enter value"
-                      />
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          className={`w-full p-1 border rounded ${validationErrors[`parameters.${index}.value`] ? 'border-red-500' : 'border-gray-300'}`}
+                          value={param.value || ''}
+                          onChange={(e) => updateParameterValue(index, e.target.value)}
+                          placeholder="Enter value"
+                        />
+                      </div>
                     )}
                     {validationErrors[`parameters.${index}.value`] && (
                       <p className="text-red-500 text-xs mt-1">{validationErrors[`parameters.${index}.value`]}</p>
@@ -267,11 +269,36 @@ const ReportParametersSection = ({
                     )}
                   </td>
                   <td className="px-4 py-2 border">
-                    {statusIndicator && (
+                    {/* Show only L/H indicators */}
+                    {param.value && !isQualitative && param.min_range && param.max_range && (
+                      <>
+                        {console.log(`Parameter: ${param.name}, Value: ${param.value}, Min: ${param.min_range}, Max: ${param.max_range}, 
+                          isHigh: ${Number(param.value) > Number(param.max_range)}, 
+                          isLow: ${Number(param.value) < Number(param.min_range)}`)}
+                        <span className={`font-bold text-lg ${
+                          Number(param.value) < Number(param.min_range) ? 'text-blue-600' : 
+                          Number(param.value) > Number(param.max_range) ? 'text-orange-600' : 
+                          'text-green-600'
+                        }`}>
+                          {Number(param.value) < Number(param.min_range) ? 'L' : 
+                          Number(param.value) > Number(param.max_range) ? 'H' : ''}
+                        </span>
+                      </>
+                    )}
+                    
+                    {/* Critical indicators */}
+                    {param.value && param.critical_low && Number(param.value) < Number(param.critical_low) && (
+                      <span className="ml-1 font-bold text-lg text-red-600">L!</span>
+                    )}
+                    {param.value && param.critical_high && Number(param.value) > Number(param.critical_high) && (
+                      <span className="ml-1 font-bold text-lg text-red-600">H!</span>
+                    )}
+                    
+                    {/* Show qualitative result if applicable */}
+                    {statusIndicator && isQualitative && (
                       <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${statusIndicator.color}-100 text-${statusIndicator.color}-800`}>
                         {statusIndicator.icon}
                         <span className="ml-1">{statusIndicator.text}</span>
-                        <span className="ml-1 text-xs">({statusIndicator.hindiText})</span>
                       </div>
                     )}
                   </td>
