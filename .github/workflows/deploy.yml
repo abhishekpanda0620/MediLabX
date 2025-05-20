@@ -40,4 +40,4 @@ jobs:
 
     - name: Copy Dist Files to Remote Server
       run: |
-        scp -i ~/.ssh/id_ed25519 -P 65002 -r frontend/dist/* ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/domains/deploywithabhi.com/public_html/app-lab/
+        scp -i ~/.ssh/id_ed25519 -P 65002 -r frontend/dist/* ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:domains/deploywithabhi.com/public_html/app-lab/
