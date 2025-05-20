@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000/api"; // Change if needed
+// In Vite, environment variables must be prefixed with VITE_ and accessed via import.meta.env
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'; 
 
 // Axios instance with default headers
 const api = axios.create({
