@@ -78,8 +78,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>MediLabX Diagnostic Center</h1>
-        <p>123 Medical Avenue, Healthcity, HC 12345 | Phone: (123) 456-7890 | Email: info@medilabx.com</p>
+        <h1>GAYATRI DIAGNOSTIC</h1>
+        <p>PAPANGA,COLONY,CHOWK,BHEDEN,BARGARH | Phone: (+91)9871373329 </p>
     </div>
 
     <div class="section">
@@ -183,27 +183,13 @@
     </div>
     @endif
 
-    @if($report->pathologist_notes || $report->conclusion)
-    <div class="section">
-        <div class="section-title">Pathologist Comments</div>
-        @if($report->pathologist_notes)
-            <p><strong>Notes:</strong> {{ $report->pathologist_notes }}</p>
-        @endif
-        @if($report->conclusion)
-            <p><strong>Conclusion:</strong> {{ $report->conclusion }}</p>
-        @endif
-    </div>
-    @endif
 
     <div class="signatures">
         <div class="signature">
             <p>{{ $report->labTechnician ? $report->labTechnician->name : 'Lab Technician' }}</p>
             <p>Lab Technician</p>
         </div>
-        <div class="signature">
-            <p>{{ $report->pathologist ? $report->pathologist->name : 'Pending Review' }}</p>
-            <p>Reviewing Pathologist</p>
-        </div>
+        
     </div>
 
     <div class="footer">

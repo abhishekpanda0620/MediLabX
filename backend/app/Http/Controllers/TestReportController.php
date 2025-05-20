@@ -223,9 +223,9 @@ class TestReportController extends Controller
                     date('F j, Y H:i:s', strtotime($testReport->validated_at)) : 
                     'Not validated'
             ]);
-            
+            $time=Carbon::now()->format('Y-m-d_H-i-s');
             // Generate a meaningful filename for download
-            $filename = "Report_{$testReport->id}.pdf";
+            $filename = "Report_{$testReport->id}_{$patient->name}_{$time}.pdf";
             
             // Return the PDF as a downloadable file
             return response($dompdf->output())

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSearch, FaUserPlus, FaFlask, FaCheck, FaPen } from "react-icons/fa";
+import { FaCheck, FaPen, FaDownload, FaEnvelope, FaCheckCircle } from "react-icons/fa";
 import Layout from "../../components/Layout";
 import {
   getAllPatients,
@@ -10,10 +10,21 @@ import {
   getTestWithParameters,
   markSampleCollected,
   markProcessing,
+  getTestReports,
+  downloadTestReport,
+  sendReportNotification
 } from "../../services/api";
-import PatientForm from "../../components/patients/PatientForm";
 import GenerateReportModal from "../../components/reports/GenerateReportModal";
-import { FormField, Alert } from "../../components/common";
+import { Alert } from "../../components/common";
+import { toast } from "react-toastify";
+
+// Import the modular components
+import { 
+  PatientSelection, 
+  TestSelection, 
+  BookingForm, 
+  ReportGeneration 
+} from "../../components/integrated-case";
 
 /**
  * IntegratedCaseReport - A streamlined workflow to create a case and generate a report
@@ -70,6 +81,10 @@ const IntegratedCaseReport = () => {
   // Report generation state
   const [showReportModal, setShowReportModal] = useState(false);
   const [testWithParameters, setTestWithParameters] = useState(null);
+  const [reportGenerationSuccess, setReportGenerationSuccess] = useState(false);
+  const [generatedReports, setGeneratedReports] = useState([]);
+  const [notificationStatus, setNotificationStatus] = useState({});
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
 
   // Fetch initial data
   useEffect(() => {
@@ -366,8 +381,84 @@ const IntegratedCaseReport = () => {
   // Handle closing the report modal
   const handleCloseReportModal = () => {
     setShowReportModal(false);
-    // Optionally reset everything to start fresh
-    handleReset();
+    
+    // Set report generation success and fetch the generated reports
+    setReportGenerationSuccess(true);
+    fetchGeneratedReports();
+  };
+  
+  // Fetch reports generated for the current booking
+  const fetchGeneratedReports = async () => {
+    if (!bookingData?.id) return;
+    
+    try {
+      setIsLoadingReports(true);
+      const reports = await getTestReports({ test_booking_id: bookingData.id });
+      console.log("Generated reports:", reports);
+      setGeneratedReports(reports);
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+      setError("Failed to fetch generated reports: " + (err.message || "Unknown error"));
+    } finally {
+      setIsLoadingReports(false);
+    }
+  };
+  
+  // Handle downloading a report
+  const handleDownloadReport = async (reportId) => {
+    try {
+      const success = await downloadTestReport(reportId);
+      if (success) {
+        toast.success("Report downloaded successfully");
+      }
+    } catch (err) {
+      console.error("Error downloading report:", err);
+      toast.error("Failed to download report: " + (err.message || "Unknown error"));
+    }
+  };
+  
+  // Handle sending notification to patient
+  const handleSendNotification = async (reportId) => {
+    try {
+      setNotificationStatus(prev => ({ ...prev, [reportId]: 'loading' }));
+      await sendReportNotification(reportId);
+      setNotificationStatus(prev => ({ ...prev, [reportId]: 'sent' }));
+      toast.success("Notification sent successfully");
+    } catch (err) {
+      console.error("Error sending notification:", err);
+      setNotificationStatus(prev => ({ ...prev, [reportId]: 'error' }));
+      toast.error("Failed to send notification: " + (err.message || "Unknown error"));
+    }
+  };
+  
+  // Handle editing an existing report
+  const handleEditReport = (reportId) => {
+    // Find the report in the generated reports list
+    const reportToEdit = generatedReports.find(report => report.id === reportId);
+    
+    if (!reportToEdit) {
+      toast.error("Unable to find report data");
+      return;
+    }
+    
+    // Set up the data for the report modal
+    setTestWithParameters({
+      id: bookingData.id,
+      status: "completed",
+      test: {
+        id: selectedTest.id,
+        name: selectedTest.name,
+        code: selectedTest.code,
+        category: selectedTest.category,
+        parameters: reportToEdit.parameters || []
+      },
+      parameters: reportToEdit.parameters || [],
+      patient: selectedPatient,
+      report_id: reportId // Add the report ID to enable edit mode
+    });
+    
+    // Open the modal in edit mode
+    setShowReportModal(true);
   };
 
   // Format price safely for display
@@ -398,299 +489,61 @@ const IntegratedCaseReport = () => {
         )}
 
         {/* Step 1: Patient Selection or Registration */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">
-            Step 1: Select or Register Patient
-          </h2>
-
-          {!selectedPatient ? (
-            <>
-              <div className="flex items-center mb-4">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 border rounded-lg"
-                    placeholder="Search patients by name, email, or phone..."
-                    value={patientSearch}
-                    onChange={(e) => setPatientSearch(e.target.value)}
-                  />
-                  <FaSearch className="absolute right-3 top-3 text-gray-400" />
-                </div>
-                <button
-                  className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center"
-                  onClick={() => setIsCreatingPatient(true)}
-                >
-                  <FaUserPlus className="mr-2" />
-                  New Patient
-                </button>
-              </div>
-
-              {isCreatingPatient ? (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Register New Patient
-                  </h3>
-                  <PatientForm
-                    patientData={newPatientData}
-                    onChange={handlePatientInputChange}
-                    errors={patientErrors}
-                  />
-                  <div className="flex justify-end mt-4">
-                    <button
-                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg mr-2"
-                      onClick={() => setIsCreatingPatient(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-                      onClick={handleCreatePatient}
-                      disabled={loading}
-                    >
-                      {loading ? "Creating..." : "Create Patient"}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                  {filteredPatients.length > 0 ? (
-                    filteredPatients.map((patient) => (
-                      <div
-                        key={patient.id}
-                        className="border rounded-lg p-4 cursor-pointer hover:bg-blue-50"
-                        onClick={() => selectPatient(patient)}
-                      >
-                        <h3 className="font-semibold">{patient.name}</h3>
-                        <p className="text-sm text-gray-600">{patient.email}</p>
-                        <p className="text-sm text-gray-600">{patient.phone}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 col-span-3">
-                      No patients found. Try a different search or register a
-                      new patient.
-                    </p>
-                  )}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-              <div>
-                <h3 className="font-semibold">{selectedPatient.name}</h3>
-                <p className="text-sm text-gray-600">{selectedPatient.email}</p>
-                <p className="text-sm text-gray-600">{selectedPatient.phone}</p>
-              </div>
-              <button
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
-                onClick={() => setSelectedPatient(null)}
-              >
-                Change Patient
-              </button>
-            </div>
-          )}
-        </div>
+        <PatientSelection
+          patients={patients}
+          patientSearch={patientSearch}
+          setPatientSearch={setPatientSearch}
+          filteredPatients={filteredPatients}
+          isCreatingPatient={isCreatingPatient}
+          setIsCreatingPatient={setIsCreatingPatient}
+          newPatientData={newPatientData}
+          handlePatientInputChange={handlePatientInputChange}
+          patientErrors={patientErrors}
+          handleCreatePatient={handleCreatePatient}
+          selectPatient={selectPatient}
+          loading={loading}
+          selectedPatient={selectedPatient}
+          setSelectedPatient={setSelectedPatient}
+        />
 
         {/* Step 2: Test Selection */}
         {selectedPatient && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Step 2: Select Test</h2>
-
-            {!selectedTest ? (
-              <>
-                <div className="flex items-center mb-4">
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 border rounded-lg"
-                      placeholder="Search tests by name, code, or category..."
-                      value={testSearch}
-                      onChange={(e) => setTestSearch(e.target.value)}
-                    />
-                    <FaSearch className="absolute right-3 top-3 text-gray-400" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                  {filteredTests.length > 0 ? (
-                    filteredTests.map((test) => (
-                      <div
-                        key={test.id}
-                        className="border rounded-lg p-4 cursor-pointer hover:bg-blue-50"
-                        onClick={() => selectTest(test)}
-                      >
-                        <div className="flex justify-between">
-                          <h3 className="font-semibold">{test.name}</h3>
-                          <span className="text-sm bg-gray-200 px-2 py-1 rounded">
-                            {test.code}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600">{test.category}</p>
-                        <p className="text-sm font-semibold mt-2">
-                          ₹{formatPrice(test.price)}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 col-span-3">
-                      No tests found. Try a different search.
-                    </p>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">{selectedTest.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    {selectedTest.code} | {selectedTest.category}
-                  </p>
-                  <p className="text-sm font-semibold">
-                    ₹{formatPrice(selectedTest.price)}
-                  </p>
-                </div>
-                <button
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
-                  onClick={() => setSelectedTest(null)}
-                >
-                  Change Test
-                </button>
-              </div>
-            )}
-          </div>
+          <TestSelection
+            testSearch={testSearch}
+            setTestSearch={setTestSearch}
+            filteredTests={filteredTests}
+            selectTest={selectTest}
+            formatPrice={formatPrice}
+            selectedTest={selectedTest}
+            setSelectedTest={setSelectedTest}
+          />
         )}
 
         {/* Step 3: Additional Details & Book Test */}
         {selectedPatient && selectedTest && !bookingSuccess && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">
-              Step 3: Integrated Workflow
-            </h2>
-
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
-              <h3 className="font-semibold text-blue-800">
-                Streamlined Process
-              </h3>
-              <p className="text-sm text-gray-700 mt-1">
-                This integrated workflow will automatically:
-              </p>
-              <ul className="list-disc text-sm text-gray-700 ml-6 mt-1">
-                <li>Book the test</li>
-                <li>Mark sample as collected</li>
-                <li>Mark test as processing</li>
-                <li>Allow immediate report generation</li>
-              </ul>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                label="Referred by"
-                id="doctor-select"
-                name="doctor_id"
-                type="select"
-                required= {true}
-                options={
-                  loading
-                    ? [{ value: "", label: "Loading doctors..." }]
-                    : [
-                       
-                        ...doctors.map((doctor) => ({
-                          value: doctor.id,
-                          label: doctor.name,
-                        })),
-                      ]
-                }
-                value={bookingDetails.doctor_id}
-                onChange={handleBookingDetailsChange}
-                disabled={loading}
-              />
-
-              <FormField
-                label="Delivery Method"
-                id="delivery-method"
-                name="delivery_method"
-                type="select"
-                options={[
-                  { value: "email", label: "Email" },
-                  { value: "sms", label: "SMS" },
-                  { value: "in_person", label: "In Person" },
-                  { value: "print", label: "Print" },
-                ]}
-                value={bookingDetails.delivery_method}
-                onChange={handleBookingDetailsChange}
-              />
-
-              <div className="md:col-span-2">
-                <FormField
-                  label="Notes (optional)"
-                  id="booking-notes"
-                  name="notes"
-                  type="textarea"
-                  placeholder="Any special instructions or notes..."
-                  value={bookingDetails.notes}
-                  onChange={handleBookingDetailsChange}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-4">
-              <button
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center"
-                onClick={handleBookTest}
-                disabled={loading}
-              >
-                <FaFlask className="mr-2" />
-                {loading ? "Processing..." : "Book & Process Test"}
-              </button>
-            </div>
-          </div>
+          <BookingForm
+            loading={loading}
+            doctors={doctors}
+            bookingDetails={bookingDetails}
+            handleBookingDetailsChange={handleBookingDetailsChange}
+            handleBookTest={handleBookTest}
+          />
         )}
 
         {/* Step 4: Generate Report */}
         {bookingSuccess && bookingData && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">
-              Step 4: Generate Report
-            </h2>
-
-            <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
-              <div className="flex items-center">
-                <FaCheck className="text-green-500 mr-2" />
-                <span className="font-medium">
-                  Test processed and ready for reporting!
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-2">
-                Booking ID: {bookingData.id} | Status: processing
-                {bookingData.doctor && (
-                  <> | Referred by: {bookingData.doctor.name}</>
-                )}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                <span className="font-medium">
-                  Automatic workflow completed:
-                </span>{" "}
-                Test booked → Sample collected → Test processing
-              </p>
-            </div>
-
-            <div className="flex justify-center mt-4">
-              <button
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg flex items-center mr-4"
-                onClick={handleGenerateReport}
-              >
-                <FaPen className="mr-2" />
-                Generate Report
-              </button>
-
-              <button
-                className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg"
-                onClick={handleReset}
-              >
-                Start New Case
-              </button>
-            </div>
-          </div>
+          <ReportGeneration
+            bookingData={bookingData}
+            reportGenerationSuccess={reportGenerationSuccess}
+            isLoadingReports={isLoadingReports}
+            generatedReports={generatedReports}
+            notificationStatus={notificationStatus}
+            handleEditReport={handleEditReport}
+            handleDownloadReport={handleDownloadReport}
+            handleSendNotification={handleSendNotification}
+            handleGenerateReport={handleGenerateReport}
+            handleReset={handleReset}
+          />
         )}
       </div>
 
@@ -706,7 +559,7 @@ const IntegratedCaseReport = () => {
             onClose={handleCloseReportModal}
             testData={testWithParameters}
             patientData={selectedPatient}
-            isEditing={false}
+            isEditing={testWithParameters && testWithParameters.report_id ? true : false}
             viewOnly={false}
           />
         </>
