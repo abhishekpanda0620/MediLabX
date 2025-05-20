@@ -24,18 +24,20 @@ jobs:
         npm install
         npm run build
 
-    - name: Setup SSH
+    - name: Setup SSH key (debug)
       run: |
-         mkdir -p ~/.ssh
-         echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 --decode > ~/.ssh/id_ed25519
-         chmod 600 ~/.ssh/id_ed25519
-         ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+        set -x  # echo commands before executing
+        mkdir -p ~/.ssh || { echo "mkdir failed"; exit 1; }
+        echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 --decode > ~/.ssh/id_ed25519 || { echo "base64 decode failed"; exit 1; }
+        chmod 600 ~/.ssh/id_ed25519 || { echo "chmod failed"; exit 1; }
+        ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts || { echo "ssh-keyscan failed"; exit 1; }
+
 
 
     - name: Clean Remote Directory
       run: |
-        ssh -i ~/.ssh/id_ed25519 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "rm -rf /domains/deploywithabhi.com/public_html/app-lab/*"
+        ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "rm -rf /domains/deploywithabhi.com/public_html/app-lab/*"
 
     - name: Copy Dist Files to Remote Server
       run: |
-        scp -i ~/.ssh/id_ed25519 -r frontend/dist/* ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/domains/deploywithabhi.com/public_html/app-lab/
+        scp -i ~/.ssh/id_ed25519 -p 65002 -r frontend/dist/* ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/domains/deploywithabhi.com/public_html/app-lab/
