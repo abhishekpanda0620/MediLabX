@@ -584,18 +584,16 @@ const IntegratedCaseReport = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                label="Referred by Doctor"
+                label="Referred by"
                 id="doctor-select"
                 name="doctor_id"
                 type="select"
+                required= {true}
                 options={
                   loading
                     ? [{ value: "", label: "Loading doctors..." }]
                     : [
-                        {
-                          value: "",
-                          label: "-- Select referring doctor (optional) --",
-                        },
+                       
                         ...doctors.map((doctor) => ({
                           value: doctor.id,
                           label: doctor.name,
@@ -615,7 +613,7 @@ const IntegratedCaseReport = () => {
                 options={[
                   { value: "email", label: "Email" },
                   { value: "sms", label: "SMS" },
-                  { value: "portal", label: "Patient Portal" },
+                  { value: "in_person", label: "In Person" },
                   { value: "print", label: "Print" },
                 ]}
                 value={bookingDetails.delivery_method}
@@ -624,7 +622,7 @@ const IntegratedCaseReport = () => {
 
               <div className="md:col-span-2">
                 <FormField
-                  label="Notes"
+                  label="Notes (optional)"
                   id="booking-notes"
                   name="notes"
                   type="textarea"
