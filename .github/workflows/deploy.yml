@@ -20,7 +20,8 @@ jobs:
 
     - name: Build Frontend
       working-directory: ./frontend
-      run: |
+      run: |    
+        echo 'VITE_API_URL="https://api-lab.deploywithabhi.com/api"' > .env
         npm install
         npm run build
 
