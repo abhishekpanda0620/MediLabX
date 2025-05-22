@@ -121,7 +121,7 @@
             <div class="value">{{ $reportDate }}</div>
         </div>
         <div class="row">
-            <div class="label">Ordering Physician:</div>
+            <div class="label">Reffered By:</div>
             <div class="value">{{ $report->testBooking->doctor->name }}</div>
         </div>
         <div class="row">

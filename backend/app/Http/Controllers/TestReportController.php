@@ -216,9 +216,12 @@ class TestReportController extends Controller
                 return response()->json(['message' => 'Incomplete report data. Please contact support.'], 500);
             }
 
+            $patient = $testReport->testBooking->patient;
+
             // Generate PDF using our direct generator
             $dompdf = DirectPDFGenerator::fromView('reports.test_report', [
                 'report' => $testReport,
+                'patient' => $patient,
                 'reportDate' => now()->format('F j, Y'),
                 'validatedDate' => $testReport->validated_at ? 
                     date('F j, Y H:i:s', strtotime($testReport->validated_at)) : 
