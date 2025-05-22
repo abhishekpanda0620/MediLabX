@@ -37,10 +37,10 @@ function App() {
       />
       ))}
       <Route path="/admin/test-packages" element={<TestPackages />} />
-      {/* 404 for protected routes */}
-      {userRole && (
+      {/* 404 for  routes Not found */}
+      {
         <Route path="*" element={<NotFound />} />
-      )}
+      }
     </Routes>
   );
 }

@@ -175,20 +175,20 @@ const ReportParametersSection = ({
               return (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-4 py-2 border font-medium relative group">
-                    <div className="flex items-center">
-                      {param.name}
-                      {showDetailedBioReference && (
-                        <FaInfoCircle className="ml-1 text-gray-400 text-xs cursor-help" />
-                      )}
+                    <div className="flex flex-col">
+                      <span>{param.parameter_name || param.name}</span>
+                      {param.sub_name && <span className="text-xs text-gray-500">{param.sub_name}</span>}
                     </div>
                     {showDetailedBioReference && (
-                      <div className="hidden group-hover:block absolute z-10 bg-white p-2 rounded shadow-lg border border-gray-200 w-64 text-xs left-0 mt-1">
-                        <p className="font-medium text-gray-700 mb-1">{param.name}</p>
-                        <p className="text-gray-600 mb-1">{param.description || 'A standard parameter tested in this investigation.'}</p>
-                        {param.method && <p className="text-gray-600">Method: {param.method}</p>}
+                      <div className="inline-flex items-center ml-1 group relative">
+                        <FaInfoCircle className="text-gray-400 text-xs cursor-help" />
+                        <div className="hidden group-hover:block absolute z-10 bg-white p-2 rounded shadow-lg border border-gray-200 w-64 text-xs left-0 mt-1">
+                          <p className="font-medium text-gray-700 mb-1">{param.parameter_name || param.name}</p>
+                          <p className="text-gray-600 mb-1">{param.description || 'A standard parameter tested in this investigation.'}</p>
+                          {param.method && <p className="text-gray-600">Method: {param.method}</p>}
+                        </div>
                       </div>
                     )}
-                    {param.sub_name && <div className="text-xs text-gray-500">{param.sub_name}</div>}
                   </td>
                   <td className="px-4 py-2 border">
                     {viewOnly ? (
@@ -199,10 +199,19 @@ const ReportParametersSection = ({
                       <div className="flex items-center">
                         <input
                           type="text"
+                          inputMode="decimal"
+                          pattern="^[0-9]*\.?[0-9]*$"
                           className={`w-full p-1 border rounded ${validationErrors[`parameters.${index}.value`] ? 'border-red-500' : 'border-gray-300'}`}
                           value={param.value || ''}
-                          onChange={(e) => updateParameterValue(index, e.target.value)}
+                          onChange={(e) => {
+                            // Only allow numeric and decimal input
+                            const val = e.target.value;
+                            if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                              updateParameterValue(index, val);
+                            }
+                          }}
                           placeholder="Enter value"
+                          autoComplete="off"
                         />
                       </div>
                     )}

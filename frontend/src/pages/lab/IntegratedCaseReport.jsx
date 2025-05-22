@@ -470,11 +470,13 @@ const IntegratedCaseReport = () => {
       // Step 1: Mark as reviewed (required before completion)
       await markReviewed(testBookingId);
       toast.info("Report reviewed successfully.");
+      // Add a short delay to ensure the user sees the first toast
+      await new Promise(res => setTimeout(res, 400));
       // Step 2: Mark as completed
       await markCompleted(testBookingId);
       toast.success("Report signed off and marked as completed!");
       // Refresh the generated reports to reflect new status
-      fetchGeneratedReports();
+      await fetchGeneratedReports();
     } catch (err) {
       console.error("Error marking report as completed:", err);
       toast.error("Failed to sign off report: " + (err.response?.data?.message || err.message || "Unknown error"));
@@ -601,10 +603,11 @@ const IntegratedCaseReport = () => {
                     {notificationStatus[generatedReports[0].id] === 'loading' ? 'Sending...' : 'Send Email'}
                   </button>
                   <button
-                    className="px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 shadow flex items-center gap-2"
+                    className={`px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 shadow flex items-center gap-2 ${loading || generatedReports[0]?.status === 'completed' || generatedReports[0]?.status === 'validated' ? 'opacity-50 cursor-not-allowed' : ''}`}
                     onClick={() => handleMarkCompleted(bookingData.id)}
+                    disabled={loading || generatedReports[0]?.status === 'completed' || generatedReports[0]?.status === 'validated'}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75A2.25 2.25 0 0014.25 4.5h-4.5A2.25 2.25 0 007.5 6.75v10.5A2.25 2.25 0 009.75 19.5h4.5a2.25 2.25 0 002.25-2.25V13.5m-6.75 0l2.25 2.25 4.5-4.5" />
                     </svg>
                     Sign Off

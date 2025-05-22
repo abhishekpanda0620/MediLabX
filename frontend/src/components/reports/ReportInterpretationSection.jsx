@@ -53,7 +53,7 @@ const ReportInterpretationSection = ({
       </div>
       
       {/* Clinical Correlation Note - common in Indian reports */}
-      <div className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-md border border-yellow-200">
+      {/* <div className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-md border border-yellow-200">
         <p className="font-medium mb-1 flex items-center">
           <FaExclamationTriangle className="text-yellow-600 mr-2" /> Clinical Correlation Advisory:
         </p>
@@ -75,7 +75,7 @@ const ReportInterpretationSection = ({
             </div>
           </>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

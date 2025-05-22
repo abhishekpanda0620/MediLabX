@@ -30,9 +30,6 @@ const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing
   // Add state for critical values
   const [isCritical, setIsCritical] = useState(false);
   
-  // Add state for digital signature
-  const [useDigitalSignature, setUseDigitalSignature] = useState(false);
-
   // Fetch current user data
   useEffect(() => {
     const fetchUserData = async () => {
@@ -157,56 +154,44 @@ const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing
             </div>
           ) : (
             <>
-              {/* Information about enhanced reference values */}
-              <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100 text-sm text-blue-700 flex items-start">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="font-medium">Enhanced Test Parameter Information</p>
-                  <p className="text-xs mt-1">
-                    This report now includes comprehensive biological reference values, investigation details, 
-                    and parameter-specific methodologies. Hover over parameters for additional context and click 
-                    on parameter names to see detailed reference information.
-                  </p>
-                </div>
+
+
+
+              {/* Only show essential info at the top */}
+              <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+               
+                <div className="text-sm flex flex-row-reverse flex-grow text-gray-600">Report Date: {new Date().toLocaleDateString()}</div>
               </div>
 
-              {/* Authentication section keeps the same */}
-              {!viewOnly && (
-                <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-                  <h3 className="text-md font-medium text-indigo-800 mb-3">Report Authentication</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Accordion for full report details, matching PDF layout */}
+              <div className="mb-6">
+                <details className="border rounded-md">
+                  <summary className="cursor-pointer px-4 py-2 font-medium bg-gray-50 hover:bg-gray-100 rounded-t-md">Show Full Report Details</summary>
+                  <div className="px-4 py-3 space-y-4">
+                    {/* Patient Information */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Lab Technician Report
-                      </label>
-                      <div className="p-2 border border-gray-300 rounded bg-white h-[38px]">
-                        <span className="text-sm text-gray-700">
-                          {user?.name || 'Loading...'}
-                        </span>
+                      <div className="font-semibold text-gray-700 mb-1">Patient Information</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div><span className="font-medium">Name:</span> {patientData?.name || 'N/A'}</div>
+                        <div><span className="font-medium">Patient ID:</span> {patientData?.id || 'N/A'}</div>
+                        <div><span className="font-medium">Gender:</span> {patientData?.gender || 'Not specified'}</div>
+                        <div><span className="font-medium">DOB:</span> {patientData?.date_of_birth ? new Date(patientData.date_of_birth).toLocaleDateString() : 'Not specified'}</div>
                       </div>
                     </div>
+                    {/* Test Information */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Digital Signature
-                      </label>
-                      <div className="flex items-center p-2 border border-gray-300 rounded bg-white h-[38px]">
-                        <input 
-                          type="checkbox" 
-                          id="use-digital-signature"
-                          checked={useDigitalSignature}
-                          onChange={(e) => setUseDigitalSignature(e.target.checked)}
-                          className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                        />
-                        <label htmlFor="use-digital-signature" className="ml-2 text-sm text-gray-700">
-                          Apply Digital Signature
-                        </label>
+                      <div className="font-semibold text-gray-700 mb-1 mt-2">Test Information</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div><span className="font-medium">Test Name:</span> {testData?.test?.name || testData?.name || 'N/A'}</div>
+                        <div><span className="font-medium">Test Code:</span> {testData?.test?.code || testData?.code || 'N/A'}</div>
+                        <div><span className="font-medium">Sample Collection:</span> {testData?.sample_collection_time ? new Date(testData.sample_collection_time).toLocaleString() : 'Not available'}</div>
+                        <div><span className="font-medium">Referred By:</span> {testData?.doctor?.name || 'N/A'}</div>
+                        <div><span className="font-medium">Report Status:</span> {testData?.status ? testData.status.toUpperCase() : 'N/A'}</div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                </details>
+              </div>
 
               {/* Parameters Section with Enhanced Reference Values */}
               {parameters.length > 0 ? (
@@ -247,110 +232,7 @@ const GenerateReportModal = ({ isOpen, onClose, testData, patientData, isEditing
                 </div>
               )}
 
-              {/* Enhanced Sample Information and Investigation Details Section */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium text-gray-700 mb-2 border-b pb-2">Sample & Investigation Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                  <div className="flex items-start">
-                    <FaFlask className="text-gray-400 mt-0.5 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Sample Type</p>
-                      <p className="text-sm text-gray-600">
-                        {testData?.test?.specimen_requirements || 'Not specified'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="text-gray-400 mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Collection Date & Time</p>
-                      <p className="text-sm text-gray-600">
-                        {testData?.sample_collection_time ? 
-                          new Date(testData.sample_collection_time).toLocaleString('en-IN') : 'Not collected yet'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="text-gray-400 mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Lab Reference No.</p>
-                      <p className="text-sm text-gray-600">
-                        LRN-{new Date().getFullYear()}-{testData?.id.toString().padStart(6, '0')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <FaQrcode className="text-gray-400 mt-0.5 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Report Verification</p>
-                      <p className="text-sm text-gray-600">
-                        QR Code Authentication
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Enhanced Investigation Details */}
-                <div className="mt-4 bg-gray-50 p-3 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Investigation Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700">Test Name</p>
-                      <p className="text-sm text-gray-800">{testData?.test?.name || 'Unknown Test'}</p>
-                    </div>
-                    {testData?.test?.code && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-700">Test Code</p>
-                        <p className="text-sm text-gray-800">{testData.test.code}</p>
-                      </div>
-                    )}
-                    {testData?.test?.category && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-700">Category</p>
-                        <p className="text-sm text-gray-800">{testData.test.category}</p>
-                      </div>
-                    )}
-                    {testData?.test?.method && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-700">Method</p>
-                        <p className="text-sm text-gray-800">{testData.test.method}</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Add expanded descriptions for test methods */}
-                  <div className="mt-3 border-t pt-2 border-gray-200">
-                    <p className="text-xs font-medium text-gray-700 mb-1">Clinical Significance</p>
-                    <p className="text-sm text-gray-600">
-                      {testData?.test?.description || 'This test provides essential diagnostic information used to assess health status, diagnose conditions, and guide treatment decisions.'}
-                    </p>
-                  </div>
-                  
-                  {testData?.test?.preparation_instructions && (
-                    <div className="mt-2">
-                      <p className="text-xs font-medium text-gray-700">Patient Preparation</p>
-                      <p className="text-sm text-gray-800">{testData.test.preparation_instructions}</p>
-                    </div>
-                  )}
-                  
-                  <div className="mt-3">
-                    <p className="text-xs font-medium text-gray-700">Biological Reference Value Notes</p>
-                    <p className="text-sm text-gray-600">
-                      Biological reference values are derived from studies of healthy individuals and may vary based on method, equipment, 
-                      and demographic factors. Values outside reference intervals are not necessarily abnormal and should be 
-                      interpreted within clinical context.
-                    </p>
-                  </div>
-                </div>
-              </div>
+       
 
               {/* PDF Preview Section has been removed */}
 
