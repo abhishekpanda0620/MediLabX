@@ -28,7 +28,7 @@ import Notifications from '../pages/common/Notifications';
 import PatientManagement from '../pages/admin/PatientManagement';
 
 export const publicRoutes = [
-  { path: '/', element: Home },
+  { path: '/', element: SignIn },
   { path: '/signin', element: SignIn },
   { path: '/signup', element: SignUp },
 ];

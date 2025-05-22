@@ -3,6 +3,7 @@ import { publicRoutes, protectedRoutes } from './routes/routes';
 import AuthGuard from './components/AuthGuard';
 import { useAuth } from './context/authContext';
 import TestPackages from './pages/admin/TestPackages';
+import NotFound from './pages/common/NotFound';
 
 function App() {
   // This should come from your auth context/state
@@ -36,6 +37,10 @@ function App() {
       />
       ))}
       <Route path="/admin/test-packages" element={<TestPackages />} />
+      {/* 404 for protected routes */}
+      {userRole && (
+        <Route path="*" element={<NotFound />} />
+      )}
     </Routes>
   );
 }
