@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // In Vite, environment variables must be prefixed with VITE_ and accessed via import.meta.env
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'; 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 // Axios instance with default headers
 const api = axios.create({
@@ -81,7 +81,7 @@ export const createTest = async (testData) => {
     price: testData.price,
     fasting_required: testData.fasting_required || false,
     fasting_duration: testData.fasting_duration,
-    parameters: testData.parameters.map(param => ({
+    parameters: testData.parameters.map((param) => ({
       parameter_name: param.parameter_name,
       unit: param.unit,
       normal_range: param.normal_range,
@@ -91,10 +91,10 @@ export const createTest = async (testData) => {
       critical_high: param.critical_high,
       interpretation_guide: param.interpretation_guide,
       method: param.method,
-      instrument: param.instrument
-    }))
+      instrument: param.instrument,
+    })),
   };
-  
+
   const response = await api.post("/test-template", data);
   return response.data;
 };
@@ -112,7 +112,7 @@ export const updateTest = async (testId, testData) => {
     price: testData.price,
     fasting_required: testData.fasting_required || false,
     fasting_duration: testData.fasting_duration,
-    parameters: testData.parameters.map(param => ({
+    parameters: testData.parameters.map((param) => ({
       parameter_name: param.parameter_name,
       unit: param.unit,
       normal_range: param.normal_range,
@@ -122,8 +122,8 @@ export const updateTest = async (testId, testData) => {
       critical_high: param.critical_high,
       interpretation_guide: param.interpretation_guide,
       method: param.method,
-      instrument: param.instrument
-    }))
+      instrument: param.instrument,
+    })),
   };
 
   const response = await api.put(`/test-template/${testId}`, data);
@@ -181,7 +181,6 @@ export const bookAppointment = async (appointmentData) => {
 
 /* =================== 🔹 ADMIN API 🔹 =================== */
 
-
 // Staff Management API
 export const getAllStaff = async () => {
   const response = await api.get("/staffs");
@@ -222,11 +221,11 @@ export const getStaffRoles = async () => {
 // Get reports for a patient or lab technician
 export const getTestReports = async (filters = {}) => {
   try {
-    const response = await api.get('/reports', { params: filters });
-    console.log('Reports response:', response.data);
+    const response = await api.get("/reports", { params: filters });
+    console.log("Reports response:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching test reports:', error);
+    console.error("Error fetching test reports:", error);
     // Return empty array instead of throwing to prevent breaking the UI
     return [];
   }
@@ -248,22 +247,22 @@ export const submitTestReport = async (reportId, data) => {
 export const downloadTestReport = async (reportId) => {
   try {
     console.log("Attempting to download report ID:", reportId);
-    
+
     const response = await api.get(`/reports/${reportId}/download`, {
-      responseType: 'blob' // Ensure the response is treated as a file
+      responseType: "blob", // Ensure the response is treated as a file
     });
-    
+
     console.log("Download response received:", response);
-    
+
     // Check if the response is valid blob and not JSON error
-    const contentType = response.headers['content-type'];
-    if (contentType && contentType.includes('application/json')) {
+    const contentType = response.headers["content-type"];
+    if (contentType && contentType.includes("application/json")) {
       // This means we got an error response instead of a PDF
       const reader = new FileReader();
-      reader.onload = function() {
+      reader.onload = function () {
         const error = JSON.parse(reader.result);
-        console.error('Error downloading report:', error);
-        alert(`Failed to download report: ${error.message || 'Unknown error'}`);
+        console.error("Error downloading report:", error);
+        alert(`Failed to download report: ${error.message || "Unknown error"}`);
       };
       reader.readAsText(response.data);
       return false;
@@ -271,20 +270,45 @@ export const downloadTestReport = async (reportId) => {
 
     // Create a download link for the file
     const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
+    const disposition = response.headers["content-disposition"];
+    let filename = `lab-report-${(() => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(d.getDate()).padStart(2, "0")}_${String(
+        d.getHours()
+      ).padStart(2, "0")}-${String(d.getMinutes()).padStart(2, "0")}-${String(
+        d.getSeconds()
+      ).padStart(2, "0")}`;
+    })()}.pdf`;
+    if (disposition && disposition.indexOf("filename=") !== -1) {
+      // Try to decode RFC 5987/6266 and handle UTF-8 and quoted-printable
+      let match = disposition.match(/filename\*=UTF-8''([^;\n]*)/);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      } else {
+        match = disposition.match(/filename="?([^";]+)"?/);
+        if (match && match[1]) {
+          filename = match[1];
+        }
+      }
+    }
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', `test-report-${reportId}.pdf`);
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
     // Clean up the object URL to avoid memory leaks
     setTimeout(() => window.URL.revokeObjectURL(url), 100);
-    
+
     return true;
   } catch (error) {
-    console.error('Error downloading report:', error);
-    alert('Failed to download report. Please check browser console for details.');
+    console.error("Error downloading report:", error);
+    alert(
+      "Failed to download report. Please check browser console for details."
+    );
     return false;
   }
 };
@@ -325,29 +349,45 @@ export const sendReportNotification = async (reportId) => {
     return response.data;
   } catch (error) {
     console.error("Error sending notification:", error);
-    throw new Error(error.response?.data?.message || "Failed to send notification");
+    throw new Error(
+      error.response?.data?.message || "Failed to send notification"
+    );
   }
 };
 
 /* =================== 🔹 TEST RESULTS API 🔹 =================== */
 // Validate test results
 export const validateTestResults = async (reportId, results) => {
-  const response = await api.post(`/test-reports/${reportId}/validate-results`, { results });
+  const response = await api.post(
+    `/test-reports/${reportId}/validate-results`,
+    { results }
+  );
   return response.data;
 };
 
 // Get parameter reference ranges
 export const getParameterReferenceRanges = async (parameterId, age, gender) => {
-  const response = await api.get(`/test-parameters/${parameterId}/reference-ranges`, {
-    params: { age, gender }
-  });
+  const response = await api.get(
+    `/test-parameters/${parameterId}/reference-ranges`,
+    {
+      params: { age, gender },
+    }
+  );
   return response.data;
 };
 
 // Get test result statistics
-export const getTestResultStatistics = async (parameterId, startDate, endDate) => {
-  const response = await api.get('/test-results/statistics', {
-    params: { parameter_id: parameterId, start_date: startDate, end_date: endDate }
+export const getTestResultStatistics = async (
+  parameterId,
+  startDate,
+  endDate
+) => {
+  const response = await api.get("/test-results/statistics", {
+    params: {
+      parameter_id: parameterId,
+      start_date: startDate,
+      end_date: endDate,
+    },
   });
   return response.data;
 };
@@ -356,43 +396,53 @@ export const getTestResultStatistics = async (parameterId, startDate, endDate) =
 // Fetch test bookings with specific filters
 export const getTestBookings = async (filters = {}) => {
   try {
-    console.log('Fetching test bookings with filters:', filters);
-    const response = await api.get('/test-bookings', { params: filters });
-    console.log('Test bookings response:', response.data);
+    console.log("Fetching test bookings with filters:", filters);
+    const response = await api.get("/test-bookings", { params: filters });
+    console.log("Test bookings response:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching test bookings:', error);
+    console.error("Error fetching test bookings:", error);
     throw error;
   }
 };
 
 // Mark a sample as collected
 export const markSampleCollected = async (testBookingId) => {
-  const response = await api.post(`/test-bookings/${testBookingId}/mark-sample-collected`);
+  const response = await api.post(
+    `/test-bookings/${testBookingId}/mark-sample-collected`
+  );
   return response.data;
 };
 
 // Mark a sample as processing
 export const markProcessing = async (testBookingId) => {
-  const response = await api.post(`/test-bookings/${testBookingId}/mark-processing`);
+  const response = await api.post(
+    `/test-bookings/${testBookingId}/mark-processing`
+  );
   return response.data;
 };
 
 // Mark a test as reviewed
 export const markReviewed = async (testBookingId) => {
-  const response = await api.post(`/test-bookings/${testBookingId}/mark-reviewed`);
+  const response = await api.post(
+    `/test-bookings/${testBookingId}/mark-reviewed`
+  );
   return response.data;
 };
 
 // Mark a test as completed
 export const markCompleted = async (testBookingId) => {
-  const response = await api.post(`/test-bookings/${testBookingId}/mark-completed`);
+  const response = await api.post(
+    `/test-bookings/${testBookingId}/mark-completed`
+  );
   return response.data;
 };
 
 // Cancel a test booking
-export const cancelTestBooking = async (testBookingId, notes = '') => {
-  const response = await api.post(`/test-bookings/${testBookingId}/cancel`, { notes });
+export const cancelTestBooking = async (testBookingId, notes = "") => {
+  const response = await api.post(`/test-bookings/${testBookingId}/cancel`, {
+    notes,
+  });
   return response.data;
 };
 
@@ -400,7 +450,7 @@ export const cancelTestBooking = async (testBookingId, notes = '') => {
 // Get all patients
 export const getAllPatients = async () => {
   try {
-    const response = await api.get('/patients');
+    const response = await api.get("/patients");
     return response.data;
   } catch (error) {
     console.error("Error fetching patients:", error);
@@ -411,7 +461,7 @@ export const getAllPatients = async () => {
 // Get the current user's patient record
 export const getCurrentPatient = async () => {
   try {
-    const response = await api.get('/patients/current');
+    const response = await api.get("/patients/current");
     return response.data;
   } catch (error) {
     console.error("Error fetching current patient record:", error);
@@ -433,7 +483,7 @@ export const getPatient = async (id) => {
 // Create a new patient
 export const createPatient = async (patientData) => {
   try {
-    const response = await api.post('/patients', patientData);
+    const response = await api.post("/patients", patientData);
     return response.data;
   } catch (error) {
     console.error("Error creating patient:", error);
@@ -463,11 +513,10 @@ export const deletePatient = async (id) => {
   }
 };
 
-
 // Get all doctors
 export const getAllDoctors = async () => {
   try {
-    const response = await api.get('/doctors');
+    const response = await api.get("/doctors");
     console.log("Doctors fetched:", response.data);
     return response.data;
   } catch (error) {
@@ -490,7 +539,7 @@ export const getDoctor = async (id) => {
 // Create a new doctor
 export const createDoctor = async (doctorData) => {
   try {
-    const response = await api.post('/doctors', doctorData);
+    const response = await api.post("/doctors", doctorData);
     return response.data;
   } catch (error) {
     console.error("Error creating doctor:", error);
@@ -523,7 +572,7 @@ export const deleteDoctor = async (id) => {
 // Get the current user's doctor record
 export const getCurrentDoctor = async () => {
   try {
-    const response = await api.get('/doctors/current');
+    const response = await api.get("/doctors/current");
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -537,7 +586,7 @@ export const getCurrentDoctor = async () => {
 /* =================== 🔹 TEST PACKAGES API 🔹 =================== */
 // Get all test packages
 export const getTestPackages = async () => {
-  const response = await api.get('/test-packages');
+  const response = await api.get("/test-packages");
   return response.data;
 };
 
@@ -549,7 +598,7 @@ export const getTestPackage = async (packageId) => {
 
 // Create a new test package
 export const createTestPackage = async (packageData) => {
-  const response = await api.post('/test-packages', packageData);
+  const response = await api.post("/test-packages", packageData);
   return response.data;
 };
 
@@ -567,7 +616,7 @@ export const deleteTestPackage = async (packageId) => {
 
 // Get available tests for creating packages
 export const getAvailableTests = async () => {
-  const response = await api.get('/available-tests');
+  const response = await api.get("/available-tests");
   return response.data;
 };
 

@@ -86,19 +86,19 @@
         <div class="section-title">Patient Information</div>
         <div class="row">
             <div class="label">Name:</div>
-            <div class="value">{{ $report->testBooking->patient->name ?? 'Unknown' }}</div>
+            <div class="value">{{ $patient->name ?? ($report->testBooking->patient->name ?? 'Unknown') }}</div>
         </div>
         <div class="row">
             <div class="label">Patient ID:</div>
-            <div class="value">{{ $report->testBooking->patient->id ?? 'Unknown' }}</div>
+            <div class="value">{{ $patient->id ?? ($report->testBooking->patient->id ?? 'Unknown') }}</div>
         </div>
         <div class="row">
             <div class="label">Gender:</div>
-            <div class="value">{{ $report->testBooking->patient->gender ?? 'Not specified' }}</div>
+            <div class="value">{{ $patient->gender ?? ($report->testBooking->patient->gender ?? 'Not specified') }}</div>
         </div>
         <div class="row">
             <div class="label">DOB:</div>
-            <div class="value">{{ $report->testBooking->patient->date_of_birth ?? 'Not specified' }}</div>
+            <div class="value">{{ $patient->date_of_birth ?? ($report->testBooking->patient->date_of_birth ?? 'Not specified') }}</div>
         </div>
     </div>
 

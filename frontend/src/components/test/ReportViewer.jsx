@@ -11,7 +11,7 @@ const ReportViewer = ({ test, results, patient, onClose }) => {
           <div className="flex gap-2">
             <PDFDownloadLink
               document={<TestReport test={test} results={results} patient={patient} />}
-              fileName={`test-report-${test.id}.pdf`}
+              fileName={`lab-report-${patient && patient.name ? String(patient.name).replace(/[^A-Za-z0-9_-]+/g, '-') : 'patient'}-${(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}-${String(d.getMinutes()).padStart(2,'0')}-${String(d.getSeconds()).padStart(2,'0')}`; })()}.pdf`}
               className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
             >
               {({ loading }) =>

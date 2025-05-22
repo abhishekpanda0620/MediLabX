@@ -217,6 +217,9 @@ class TestReportController extends Controller
             }
 
             $patient = $testReport->testBooking->patient;
+            $safePatientName = preg_replace('/[^A-Za-z0-9_-]+/', '-', $patient->name);
+            $time = Carbon::now()->format('Y-m-d_H-i-s');
+            $filename = "lab-report-{$safePatientName}-{$time}.pdf";
 
             // Generate PDF using our direct generator
             $dompdf = DirectPDFGenerator::fromView('reports.test_report', [
@@ -227,9 +230,6 @@ class TestReportController extends Controller
                     date('F j, Y H:i:s', strtotime($testReport->validated_at)) : 
                     'Not validated'
             ]);
-            $time=Carbon::now()->format('Y-m-d_H-i-s');
-            // Generate a meaningful filename for download
-            $filename = "Report_{$testReport->id}_{$patient->name}_{$time}.pdf";
             
             // Return the PDF as a downloadable file
             return response($dompdf->output())
