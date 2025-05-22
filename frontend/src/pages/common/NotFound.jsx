@@ -11,10 +11,16 @@ const NotFound = () => {
         <h2 className="text-2xl font-semibold text-gray-800 mb-2">Page Not Found</h2>
         <p className="text-gray-600 mb-6">Sorry, the page you are looking for does not exist.</p>
         <button
-          className="bg-indigo-600 text-white py-2 px-6 rounded-lg shadow hover:bg-indigo-700 transition"
+          className="bg-indigo-600 mx-2 text-white py-2 px-6 rounded-lg shadow hover:bg-indigo-700 transition cursor-pointer"
           onClick={() => navigate(-1)}
         >
           Go Back
+        </button>
+        <button
+          className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg shadow hover:bg-gray-300 transition cursor-pointer mt-3"
+          onClick={() => navigate('/')}
+        >
+          Go Home
         </button>
       </div>
     </div>
