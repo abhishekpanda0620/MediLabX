@@ -12,7 +12,9 @@ import {
   markProcessing,
   getTestReports,
   downloadTestReport,
-  sendReportNotification
+  sendReportNotification,
+  markCompleted,
+  markReviewed
 } from "../../services/api";
 import GenerateReportModal from "../../components/reports/GenerateReportModal";
 import { Alert } from "../../components/common";
@@ -461,6 +463,26 @@ const IntegratedCaseReport = () => {
     setShowReportModal(true);
   };
 
+  // Handle marking a test as reviewed and then completed (sign off)
+  const handleMarkCompleted = async (testBookingId) => {
+    try {
+      setLoading(true);
+      // Step 1: Mark as reviewed (required before completion)
+      await markReviewed(testBookingId);
+      toast.info("Report reviewed successfully.");
+      // Step 2: Mark as completed
+      await markCompleted(testBookingId);
+      toast.success("Report signed off and marked as completed!");
+      // Refresh the generated reports to reflect new status
+      fetchGeneratedReports();
+    } catch (err) {
+      console.error("Error marking report as completed:", err);
+      toast.error("Failed to sign off report: " + (err.response?.data?.message || err.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Format price safely for display
   const formatPrice = (price) => {
     if (price === null || price === undefined) return "N/A";
@@ -479,8 +501,8 @@ const IntegratedCaseReport = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">
+      <div className="max-w-3xl mx-auto px-4 py-10 bg-white rounded-2xl shadow-lg border border-gray-100">
+        <h1 className="text-4xl font-extrabold mb-10 text-center text-blue-800 tracking-tight drop-shadow-sm">
           Create Case & Generate Report
         </h1>
 
@@ -489,80 +511,136 @@ const IntegratedCaseReport = () => {
         )}
 
         {/* Step 1: Patient Selection or Registration */}
-        <PatientSelection
-          patients={patients}
-          patientSearch={patientSearch}
-          setPatientSearch={setPatientSearch}
-          filteredPatients={filteredPatients}
-          isCreatingPatient={isCreatingPatient}
-          setIsCreatingPatient={setIsCreatingPatient}
-          newPatientData={newPatientData}
-          handlePatientInputChange={handlePatientInputChange}
-          patientErrors={patientErrors}
-          handleCreatePatient={handleCreatePatient}
-          selectPatient={selectPatient}
-          loading={loading}
-          selectedPatient={selectedPatient}
-          setSelectedPatient={setSelectedPatient}
-        />
+        <div className="mb-10 p-6 bg-blue-50 rounded-xl border border-blue-100 shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-lg">1</span>
+            <span className="text-lg font-semibold text-blue-700">Select or Register Patient</span>
+          </div>
+          <PatientSelection
+            patients={patients}
+            patientSearch={patientSearch}
+            setPatientSearch={setPatientSearch}
+            filteredPatients={filteredPatients}
+            isCreatingPatient={isCreatingPatient}
+            setIsCreatingPatient={setIsCreatingPatient}
+            newPatientData={newPatientData}
+            handlePatientInputChange={handlePatientInputChange}
+            patientErrors={patientErrors}
+            handleCreatePatient={handleCreatePatient}
+            selectPatient={selectPatient}
+            loading={loading}
+            selectedPatient={selectedPatient}
+            setSelectedPatient={setSelectedPatient}
+          />
+        </div>
 
         {/* Step 2: Test Selection */}
         {selectedPatient && (
-          <TestSelection
-            testSearch={testSearch}
-            setTestSearch={setTestSearch}
-            filteredTests={filteredTests}
-            selectTest={selectTest}
-            formatPrice={formatPrice}
-            selectedTest={selectedTest}
-            setSelectedTest={setSelectedTest}
-          />
+          <div className="mb-10 p-6 bg-green-50 rounded-xl border border-green-100 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600 text-white font-bold text-lg">2</span>
+              <span className="text-lg font-semibold text-green-700">Select Test</span>
+            </div>
+            <TestSelection
+              testSearch={testSearch}
+              setTestSearch={setTestSearch}
+              filteredTests={filteredTests}
+              selectTest={selectTest}
+              formatPrice={formatPrice}
+              selectedTest={selectedTest}
+              setSelectedTest={setSelectedTest}
+            />
+          </div>
         )}
 
         {/* Step 3: Additional Details & Book Test */}
         {selectedPatient && selectedTest && !bookingSuccess && (
-          <BookingForm
-            loading={loading}
-            doctors={doctors}
-            bookingDetails={bookingDetails}
-            handleBookingDetailsChange={handleBookingDetailsChange}
-            handleBookTest={handleBookTest}
-          />
+          <div className="mb-10 p-6 bg-yellow-50 rounded-xl border border-yellow-100 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold text-lg">3</span>
+              <span className="text-lg font-semibold text-yellow-700">Booking Details</span>
+            </div>
+            <BookingForm
+              loading={loading}
+              doctors={doctors}
+              bookingDetails={bookingDetails}
+              handleBookingDetailsChange={handleBookingDetailsChange}
+              handleBookTest={handleBookTest}
+            />
+          </div>
         )}
 
         {/* Step 4: Generate Report */}
         {bookingSuccess && bookingData && (
-          <ReportGeneration
-            bookingData={bookingData}
-            reportGenerationSuccess={reportGenerationSuccess}
-            isLoadingReports={isLoadingReports}
-            generatedReports={generatedReports}
-            notificationStatus={notificationStatus}
-            handleEditReport={handleEditReport}
-            handleDownloadReport={handleDownloadReport}
-            handleSendNotification={handleSendNotification}
-            handleGenerateReport={handleGenerateReport}
-            handleReset={handleReset}
-          />
+          <div className="mb-10 p-6 bg-purple-50 rounded-xl border border-purple-100 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-600 text-white font-bold text-lg">4</span>
+              <span className="text-lg font-semibold text-purple-700">Generate & Manage Report</span>
+            </div>
+            {/* Show the generated report view instead of a table */}
+            {generatedReports && generatedReports.length > 0 ? (
+              <div className="bg-white rounded-xl shadow p-6 border border-gray-100 mb-6">
+                <h3 className="text-xl font-bold text-purple-700 mb-4">Latest Generated Report</h3>
+                <div className="mb-4">
+                  <div className="font-semibold text-gray-700">Report ID: <span className="text-gray-900">{generatedReports[0].id}</span></div>
+                  <div className="text-gray-600">Status: <span className="font-semibold text-purple-700">{generatedReports[0].status}</span></div>
+                  <div className="text-gray-600">Created: <span className="font-semibold">{new Date(generatedReports[0].created_at).toLocaleString()}</span></div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow"
+                    onClick={() => handleDownloadReport(generatedReports[0].id)}
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow"
+                    onClick={() => handleSendNotification(generatedReports[0].id)}
+                    disabled={notificationStatus[generatedReports[0].id] === 'loading'}
+                  >
+                    {notificationStatus[generatedReports[0].id] === 'loading' ? 'Sending...' : 'Send Email'}
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 shadow flex items-center gap-2"
+                    onClick={() => handleMarkCompleted(bookingData.id)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75A2.25 2.25 0 0014.25 4.5h-4.5A2.25 2.25 0 007.5 6.75v10.5A2.25 2.25 0 009.75 19.5h4.5a2.25 2.25 0 002.25-2.25V13.5m-6.75 0l2.25 2.25 4.5-4.5" />
+                    </svg>
+                    Sign Off
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-500 italic mb-6">No report generated yet. Please generate a report.</div>
+            )}
+            <ReportGeneration
+              bookingData={bookingData}
+              reportGenerationSuccess={reportGenerationSuccess}
+              isLoadingReports={isLoadingReports}
+              generatedReports={generatedReports}
+              notificationStatus={notificationStatus}
+              handleEditReport={handleEditReport}
+              handleDownloadReport={handleDownloadReport}
+              handleSendNotification={handleSendNotification}
+              handleGenerateReport={handleGenerateReport}
+              handleReset={handleReset}
+              hideReportsTable={true}
+            />
+          </div>
         )}
       </div>
 
       {/* Report Generation Modal */}
       {showReportModal && testWithParameters && (
-        <>
-          {console.log(
-            "Rendering modal with test data:",
-            JSON.stringify(testWithParameters, null, 2)
-          )}
-          <GenerateReportModal
-            isOpen={showReportModal}
-            onClose={handleCloseReportModal}
-            testData={testWithParameters}
-            patientData={selectedPatient}
-            isEditing={testWithParameters && testWithParameters.report_id ? true : false}
-            viewOnly={false}
-          />
-        </>
+        <GenerateReportModal
+          isOpen={showReportModal}
+          onClose={handleCloseReportModal}
+          testData={testWithParameters}
+          patientData={selectedPatient}
+          isEditing={testWithParameters && testWithParameters.report_id ? true : false}
+          viewOnly={false}
+        />
       )}
     </Layout>
   );

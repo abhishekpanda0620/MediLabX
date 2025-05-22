@@ -19,18 +19,16 @@ const PatientSelection = ({
   setSelectedPatient
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">
-        Step 1: Select or Register Patient
-      </h2>
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      
 
       {!selectedPatient ? (
         <>
-          <div className="flex items-center mb-4">
+          <div className="flex flex-col md:flex-row md:items-center mb-4 gap-4">
             <div className="flex-1 relative">
               <input
                 type="text"
-                className="w-full px-4 py-2 border rounded-lg"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
                 placeholder="Search patients by name, email, or phone..."
                 value={patientSearch}
                 onChange={(e) => setPatientSearch(e.target.value)}
@@ -38,7 +36,7 @@ const PatientSelection = ({
               <FaSearch className="absolute right-3 top-3 text-gray-400" />
             </div>
             <button
-              className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center shadow hover:bg-blue-700 transition"
               onClick={() => setIsCreatingPatient(true)}
             >
               <FaUserPlus className="mr-2" />
@@ -47,8 +45,8 @@ const PatientSelection = ({
           </div>
 
           {isCreatingPatient ? (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-4">
+              <h3 className="text-lg font-semibold mb-4 text-blue-700">
                 Register New Patient
               </h3>
               <PatientForm
@@ -56,15 +54,15 @@ const PatientSelection = ({
                 onChange={handlePatientInputChange}
                 errors={patientErrors}
               />
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-end mt-4 gap-2">
                 <button
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg mr-2"
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                   onClick={() => setIsCreatingPatient(false)}
                 >
                   Cancel
                 </button>
                 <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow"
                   onClick={handleCreatePatient}
                   disabled={loading}
                 >
@@ -78,32 +76,29 @@ const PatientSelection = ({
                 filteredPatients.map((patient) => (
                   <div
                     key={patient.id}
-                    className="border rounded-lg p-4 cursor-pointer hover:bg-blue-50"
+                    className="border rounded-lg p-4 cursor-pointer hover:bg-blue-50 transition shadow-sm flex flex-col gap-2"
                     onClick={() => selectPatient(patient)}
                   >
-                    <h3 className="font-semibold">{patient.name}</h3>
-                    <p className="text-sm text-gray-600">{patient.email}</p>
-                    <p className="text-sm text-gray-600">{patient.phone}</p>
+                    <span className="font-semibold text-blue-800">{patient.name}</span>
+                    <span className="text-sm text-gray-600">{patient.email}</span>
+                    <span className="text-sm text-gray-500">{patient.phone}</span>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 col-span-3">
-                  No patients found. Try a different search or register a
-                  new patient.
-                </p>
+                <p className="text-gray-500 col-span-3">No patients found. Try a different search.</p>
               )}
             </div>
           )}
         </>
       ) : (
-        <div className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
+        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h3 className="font-semibold">{selectedPatient.name}</h3>
-            <p className="text-sm text-gray-600">{selectedPatient.email}</p>
-            <p className="text-sm text-gray-600">{selectedPatient.phone}</p>
+            <span className="font-semibold text-blue-800 text-lg">{selectedPatient.name}</span>
+            <span className="block text-sm text-gray-600">{selectedPatient.email}</span>
+            <span className="block text-sm text-gray-500">{selectedPatient.phone}</span>
           </div>
           <button
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
             onClick={() => setSelectedPatient(null)}
           >
             Change Patient

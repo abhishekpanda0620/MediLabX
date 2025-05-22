@@ -10,13 +10,11 @@ const BookingForm = ({
   handleBookTest
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">
-        Step 3: Integrated Workflow
-      </h2>
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      
 
-      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
-        <h3 className="font-semibold text-blue-800">
+      <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl mb-4">
+        <h3 className="font-semibold text-yellow-800">
           Streamlined Process
         </h3>
         <p className="text-sm text-gray-700 mt-1">
@@ -79,15 +77,13 @@ const BookingForm = ({
           />
         </div>
       </div>
-
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-end mt-6">
         <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center"
+          className="px-6 py-2 bg-yellow-500 text-white rounded-lg font-semibold shadow hover:bg-yellow-600 transition"
           onClick={handleBookTest}
           disabled={loading}
         >
-          <FaFlask className="mr-2" />
-          {loading ? "Processing..." : "Book & Process Test"}
+          {loading ? "Booking..." : "Book & Continue"}
         </button>
       </div>
     </div>

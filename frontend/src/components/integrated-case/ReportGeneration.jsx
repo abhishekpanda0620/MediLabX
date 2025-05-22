@@ -11,17 +11,16 @@ const ReportGeneration = ({
   handleDownloadReport,
   handleSendNotification,
   handleGenerateReport,
-  handleReset
+  handleReset,
+  hideReportsTable = false
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">
-        Step 4: Generate Report
-      </h2>
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      
 
-      <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
+      <div className="bg-purple-50 border border-purple-200 p-4 rounded-xl mb-4">
         <div className="flex items-center">
-          <FaCheck className="text-green-500 mr-2" />
+          <FaCheck className="text-purple-500 mr-2" />
           <span className="font-medium">
             Test processed and ready for reporting!
           </span>
@@ -54,12 +53,12 @@ const ReportGeneration = ({
       )}
 
       {/* Display generated reports list */}
-      {reportGenerationSuccess && (
+      {reportGenerationSuccess && !hideReportsTable && (
         <div className="mt-4 mb-6">
           <h3 className="text-lg font-medium mb-3">Available Reports</h3>
           {isLoadingReports ? (
             <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
               <p className="mt-2 text-gray-600">Loading reports...</p>
             </div>
           ) : generatedReports.length > 0 ? (
@@ -162,14 +161,23 @@ const ReportGeneration = ({
       )}
 
       <div className="flex justify-center mt-4">
-        <button
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg flex items-center mr-4"
-          onClick={handleGenerateReport}
-        >
-          <FaPen className="mr-2" />
-          Generate Report
-        </button>
-
+        {generatedReports && generatedReports.length > 0 ? (
+          <button
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg flex items-center mr-4"
+            onClick={() => handleEditReport(generatedReports[0].id)}
+          >
+            <FaPen className="mr-2" />
+            View Report
+          </button>
+        ) : (
+          <button
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg flex items-center mr-4"
+            onClick={handleGenerateReport}
+          >
+            <FaPen className="mr-2" />
+            Generate Report
+          </button>
+        )}
         <button
           className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg"
           onClick={handleReset}
