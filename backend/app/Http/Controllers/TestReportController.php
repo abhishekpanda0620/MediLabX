@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Exception;
-
+use Carbon\Carbon;
 class TestReportController extends Controller
 {
     public function index(Request $request)
@@ -19,6 +19,7 @@ class TestReportController extends Controller
         $query = TestReport::with(['testBooking', 'testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
 
         // Check if showAll parameter is specified, used for admin views and lab reports page
+       
         if ($request->has('showAll') && $request->showAll === 'true') {
             // If showAll is true, we only apply role-based restrictions for non-staff users
             if ($user->hasRole('patient')) {
