@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaVials, FaUserFriends, FaChartBar, FaCog, FaBell, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaFileAlt, FaTag, FaClipboardList } from 'react-icons/fa';
+import { FaHome, FaVials, FaUserFriends, FaChartBar, FaCog, FaBell, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaFileAlt, FaTag, FaClipboardList, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/authContext';
 
-const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
+const Sidebar = ({ isCollapsed, toggleCollapse, userRole, isMobileOpen, onMobileClose }) => {
   const { logout } = useAuth();
 
   const menuItems = {
@@ -42,12 +42,37 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
   const roleMenu = menuItems[userRole] || [];
   const commonMenu = menuItems.common;
 
+  // Sidebar classes
+  const sidebarBase = `bg-indigo-700 text-white max-h-screen overflow-y-auto transition-all duration-300 z-40`;
+  const sidebarWidth = isCollapsed ? 'w-16' : 'w-64';
+  // Desktop: fixed width, Mobile: overlay with smooth slide
+  const sidebarPosition = `lg:relative lg:translate-x-0 lg:flex fixed left-0 top-0 bottom-0 transition-transform duration-300 ${isMobileOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'} lg:opacity-100`;
+
   return (
-    <div className={`bg-indigo-700  text-white ${isCollapsed ? 'w-16' : 'w-64'} transition-all duration-300 max-h-screen overflow-y-auto hidden md:flex flex-col`}>
-      <button onClick={toggleCollapse} className="p-2 flex items-center justify-center hover:bg-indigo-600">
-        {isCollapsed ? <FaChevronRight cla /> : <FaChevronLeft />}
+    <aside
+      className={`
+        ${sidebarBase}
+        ${sidebarWidth}
+        ${sidebarPosition}
+        flex flex-col
+        transition-all duration-300
+        lg:block
+      `}
+      style={{ minWidth: isCollapsed ? '4rem' : '16rem', maxWidth: isCollapsed ? '4rem' : '16rem' }}
+    >
+      {/* Collapse/Expand button (always visible on desktop) */}
+      <button onClick={toggleCollapse} className="p-2 items-center justify-center hover:bg-indigo-600 hidden lg:flex">
+        {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
       </button>
-      <nav className="mt-4 flex-grow ">
+      {/* Mobile close button */}
+      <button
+        onClick={onMobileClose}
+        className="p-2 flex items-center justify-center hover:bg-indigo-600 lg:hidden absolute top-2 right-2 z-50"
+        aria-label="Close sidebar"
+      >
+        <FaTimes />
+      </button>
+      <nav className="mt-4 flex-grow">
         {[...roleMenu, ...commonMenu].map((item) => (
           <Link key={item.path} to={item.path} className="block py-2 px-4 hover:bg-indigo-600">
             <item.icon className="inline-block mr-2" />
@@ -55,11 +80,11 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole }) => {
           </Link>
         ))}
       </nav>
-      <button onClick={logout} className=" py-2 px-4 hover:bg-indigo-600 w-full text-left flex items-center">
+      <button onClick={logout} className="py-2 px-4 hover:bg-indigo-600 w-full text-left flex items-center">
         <FaSignOutAlt className="mr-2" />
-        {!isCollapsed?'Logout':''}
+        {!isCollapsed ? 'Logout' : ''}
       </button>
-    </div>
+    </aside>
   );
 };
 
