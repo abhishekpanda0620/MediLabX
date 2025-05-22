@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReportMail;
+use Illuminate\Support\Str;
 use Exception;
 use Carbon\Carbon;
 class TestReportController extends Controller
@@ -272,44 +275,62 @@ class TestReportController extends Controller
     /**
      * Send notification to patient about their report.
      */
-    public function notify(Request $request, TestReport $testReport)
-    {
-        // Check if report is validated
-        if ($testReport->status !== TestReport::STATUS_VALIDATED) {
-            return response()->json(['message' => 'Only validated reports can be shared with patients'], 422);
+    
+public function notify(Request $request, TestReport $testReport)
+{
+    // if ($testReport->status !== TestReport::STATUS_VALIDATED) {
+    //     return response()->json(['message' => 'Only validated reports can be shared with patients'], 422);
+    // }
+
+    try {
+        $testReport->load(['testBooking.patient', 'testBooking.test']);
+        $patient = $testReport->testBooking->patient;
+        if (!$patient) {
+            return response()->json(['message' => 'Patient not found'], 404);
         }
 
-        try {
-            // Load the necessary relationships
-            $testReport->load(['testBooking.patient', 'testBooking.test']);
-            
-            $patient = $testReport->testBooking->patient;
-            
-            if (!$patient) {
-                return response()->json(['message' => 'Patient not found'], 404);
-            }
-            
-            // Get patient email
-            $patientEmail = $patient->email;
-            $patientName = $patient->name;
-            $testName = $testReport->testBooking->test->name ?? 'Test';
-            
-            // In a real application, you would queue an email job here
-            // For now, we'll just simulate a successful email send
-            
-            // Example of how you would send an email in a real application:
-            // Mail::to($patientEmail)->send(new TestReportAvailable($testReport));
-            
-            // Log the notification attempt
-            \Log::info("Notification sent to patient: {$patientName} ({$patientEmail}) for test report #{$testReport->id}");
-            
-            return response()->json([
-                'success' => true,
-                'message' => "Notification sent to patient: {$patientName}",
-            ]);
-        } catch (\Exception $e) {
-            \Log::error("Notification Error: " . $e->getMessage());
-            return response()->json(['message' => 'Error sending notification: ' . $e->getMessage()], 500);
-        }
+        $patientEmail = $patient->email;
+        $patientName = $patient->name;
+        $testName = $testReport->testBooking->test->name ?? 'Test';
+
+        // Generate PDF and save to temp path
+        $pdf = \App\Services\PDF\DirectPDFGenerator::fromView('reports.test_report', [
+            'report' => $testReport,
+            'patient' => $patient,
+            'reportDate' => now()->format('F j, Y'),
+            'validatedDate' => $testReport->validated_at ? 
+                date('F j, Y H:i:s', strtotime($testReport->validated_at)) : 
+                'Not validated'
+        ]);
+        $filename = 'lab-report-' . Str::slug($patientName) . '-' . now()->format('YmdHis') . '.pdf';
+        $tempPath = storage_path('app/' . $filename);
+        file_put_contents($tempPath, $pdf->output());
+
+        // Prepare details for the email template
+        $frontendUrl = config('app.frontend_url');
+        $details = [
+            'name' => $patientName,
+            'report_url' => "$frontendUrl/reports/{$testReport->id}/preview",
+            'test_name' => $testName,
+            'report_date' => $testReport->validated_at ? date('F j, Y', strtotime($testReport->validated_at)) : now()->format('F j, Y'),
+            'summary' => $testReport->conclusion ?? null,
+        ];
+
+        // Send the email
+        Mail::to($patientEmail)->send(new ReportMail($details, $tempPath));
+
+        // Delete the temp file
+        @unlink($tempPath);
+
+        \Log::info("Notification sent to patient: {$patientName} ({$patientEmail}) for test report #{$testReport->id}");
+
+        return response()->json([
+            'success' => true,
+            'message' => "Notification sent to patient: {$patientName}",
+        ]);
+    } catch (\Exception $e) {
+        \Log::error("Notification Error: " . $e->getMessage());
+        return response()->json(['message' => 'Error sending notification: ' . $e->getMessage()], 500);
     }
+}
 }
