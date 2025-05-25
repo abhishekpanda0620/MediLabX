@@ -58,7 +58,7 @@ const Modal = ({
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-1.5 transition-colors duration-150"
+            className="text-white hover:bg-white hover:text-slate-600 hover:bg-opacity-20 rounded-full p-1.5 transition-colors duration-150"
           >
             <FaTimes />
           </button>

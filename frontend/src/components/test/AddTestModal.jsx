@@ -23,7 +23,7 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {}, categorie
     unit: '',
     normal_range: '',
     description: '',
-    reference_ranges: [],
+    reference_ranges: '[]',  // Changed from [] to '[]' (JSON string)
     critical_low: '',
     critical_high: '',
     interpretation_guide: '',
@@ -54,14 +54,20 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {}, categorie
     if (newParameter.parameter_name && newParameter.unit && newParameter.normal_range) {
       setTestData(prev => ({
         ...prev,
-        parameters: [...prev.parameters, { ...newParameter }]
+        parameters: [...prev.parameters, { 
+          ...newParameter,
+          // Ensure reference_ranges is a JSON string
+          reference_ranges: typeof newParameter.reference_ranges === 'string' 
+            ? newParameter.reference_ranges 
+            : JSON.stringify(newParameter.reference_ranges)
+        }]
       }));
       setNewParameter({
         parameter_name: '',
         unit: '',
         normal_range: '',
         description: '',
-        reference_ranges: [],
+        reference_ranges: '[]',
         critical_low: '',
         critical_high: '',
         interpretation_guide: '',
@@ -90,7 +96,18 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {}, categorie
       return;
     }
     
-    onAdd(testData);
+    // Ensure all parameters have reference_ranges as JSON strings
+    const formattedData = {
+      ...testData,
+      parameters: testData.parameters.map(param => ({
+        ...param,
+        reference_ranges: typeof param.reference_ranges === 'string'
+          ? param.reference_ranges
+          : JSON.stringify(param.reference_ranges)
+      }))
+    };
+    
+    onAdd(formattedData);
   };
 
   return (
@@ -100,7 +117,7 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {}, categorie
       title="Add New Test"
       size="4xl"
       footer={
-        <ModalFooter>
+        <div className="flex justify-end space-x-3 mt-4">
           <button
             type="button"
             onClick={onClose}
@@ -116,7 +133,7 @@ const AddTestModal = ({ isOpen, onClose, onAdd, validationErrors = {}, categorie
             <FaPlus className="inline-block mr-2" />
             Create Test
           </button>
-        </ModalFooter>
+        </div>
       }
     >
       {formError && (

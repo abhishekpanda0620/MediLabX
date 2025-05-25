@@ -74,7 +74,7 @@ const FormTest = ({
             id="test-price"
             name="price"
             type="number"
-            placeholder="Price in dollars"
+            placeholder="Price in INR"
             value={testData.price}
             onChange={onChange}
             error={validationErrors?.price}
@@ -171,7 +171,7 @@ const FormTest = ({
           <button
             type="button"
             onClick={() => setShowParameterForm(true)}
-            className="flex items-center text-sm px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200"
+            className="flex  cursor-pointer items-center text-sm px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200"
           >
             <FaPlus className="mr-1" size={12} /> Add Parameter
           </button>

@@ -23,7 +23,7 @@ const EditTestModal = ({ isOpen, onClose, onEdit, test, validationErrors = {}, c
     unit: '',
     normal_range: '',
     description: '',
-    reference_ranges: [],
+    reference_ranges: '[]', // Changed from [] to '[]' (JSON string)
     critical_low: '',
     critical_high: '',
     interpretation_guide: '',
@@ -36,6 +36,14 @@ const EditTestModal = ({ isOpen, onClose, onEdit, test, validationErrors = {}, c
 
   useEffect(() => {
     if (test) {
+      // Format the test data, making sure reference_ranges are JSON strings
+      const formattedParameters = (test.parameters || []).map(param => ({
+        ...param,
+        reference_ranges: typeof param.reference_ranges === 'string' 
+          ? param.reference_ranges 
+          : JSON.stringify(param.reference_ranges || [])
+      }));
+
       setTestData({
         id: test.id,
         name: test.name,
@@ -48,7 +56,7 @@ const EditTestModal = ({ isOpen, onClose, onEdit, test, validationErrors = {}, c
         price: test.price || '',
         fasting_required: test.fasting_required || false,
         fasting_duration: test.fasting_duration || '',
-        parameters: test.parameters || []
+        parameters: formattedParameters
       });
     }
   }, [test]);
@@ -73,14 +81,20 @@ const EditTestModal = ({ isOpen, onClose, onEdit, test, validationErrors = {}, c
     if (newParameter.parameter_name && newParameter.unit && newParameter.normal_range) {
       setTestData(prev => ({
         ...prev,
-        parameters: [...prev.parameters, { ...newParameter }]
+        parameters: [...prev.parameters, { 
+          ...newParameter,
+          // Ensure reference_ranges is a JSON string
+          reference_ranges: typeof newParameter.reference_ranges === 'string' 
+            ? newParameter.reference_ranges 
+            : JSON.stringify(newParameter.reference_ranges)
+        }]
       }));
       setNewParameter({
         parameter_name: '',
         unit: '',
         normal_range: '',
         description: '',
-        reference_ranges: [],
+        reference_ranges: '[]',
         critical_low: '',
         critical_high: '',
         interpretation_guide: '',
@@ -109,7 +123,18 @@ const EditTestModal = ({ isOpen, onClose, onEdit, test, validationErrors = {}, c
       return;
     }
     
-    onEdit(testData);
+    // Format parameters to ensure reference_ranges are valid JSON strings
+    const formattedData = {
+      ...testData,
+      parameters: testData.parameters.map(param => ({
+        ...param,
+        reference_ranges: typeof param.reference_ranges === 'string'
+          ? param.reference_ranges
+          : JSON.stringify(param.reference_ranges)
+      }))
+    };
+    
+    onEdit(formattedData);
   };
 
   return (
@@ -119,7 +144,7 @@ const EditTestModal = ({ isOpen, onClose, onEdit, test, validationErrors = {}, c
       title={`Edit Test: ${test?.name}`}
       size="4xl"
       footer={
-        <ModalFooter>
+        <div className="flex justify-end space-x-3 mt-4">
           <button
             type="button"
             onClick={onClose}
@@ -135,7 +160,7 @@ const EditTestModal = ({ isOpen, onClose, onEdit, test, validationErrors = {}, c
             <FaSave className="inline-block mr-2" />
             Save Changes
           </button>
-        </ModalFooter>
+        </div>
       }
     >
       {formError && (
