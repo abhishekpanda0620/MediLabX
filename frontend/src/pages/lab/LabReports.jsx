@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaFileAlt, FaEye, FaDownload, FaShare, FaSearch, FaBell, FaSpinner, FaCheck, FaTimes } from 'react-icons/fa';
 import Layout from '../../components/Layout';
+import { toast } from 'react-toastify';
 import { getTestReports, sendReportNotification, downloadTestReport } from '../../services/api';
 
 const LabReports = () => {
@@ -84,8 +85,11 @@ const LabReports = () => {
   const handleSendNotification = async (reportId) => {
     try {
       setNotificationStatus(prev => ({ ...prev, [reportId]: 'sending' }));
+      toast.info('Sending notification to patient...', { autoClose: 2000 });
+      
       await sendReportNotification(reportId);
       setNotificationStatus(prev => ({ ...prev, [reportId]: 'sent' }));
+      toast.success('Notification sent successfully to patient!');
       
       // Reset notification status after 3 seconds
       setTimeout(() => {
@@ -97,6 +101,7 @@ const LabReports = () => {
       }, 3000);
     } catch (err) {
       console.error('Notification error:', err);
+      toast.error(`Failed to send notification: ${err.message || 'Unknown error'}`);
       setError(`Failed to send notification: ${err.message || 'Unknown error'}`);
       setNotificationStatus(prev => ({ ...prev, [reportId]: 'error' }));
       
@@ -113,44 +118,30 @@ const LabReports = () => {
 
   const handleDownload = async (reportId) => {
     try {
+      console.log('Starting report download for ID:', reportId);
+      toast.info('Preparing report for download...', { autoClose: 2000 });
+      
       const downloadSuccessful = await downloadTestReport(reportId);
+      
       if (!downloadSuccessful) {
+        console.error('Download unsuccessful, report may not be validated');
+        toast.error('Failed to download report. Please ensure the report is validated and try again.');
         setError('Failed to download report. Please ensure the report is validated and try again.');
+      } else {
+        console.log('Report downloaded successfully');
+        toast.success('Report downloaded successfully!');
+        // Clear any previous errors
+        setError(null);
       }
     } catch (error) {
       console.error('Error downloading report:', error);
+      toast.error('Failed to download report. Please try again later.');
       setError('Failed to generate or download the report. Please try again later.');
     }
   };
   
   const handleViewReport = (report) => {
-    console.log("Viewing report details:", report);
-    
-    // Create a thorough debug log to track down where data is located
-    console.log("Test details:", {
-      test_id: report.test_booking?.test_id,
-      test_name: report.test_booking?.test?.name,
-      test_category: report.test_booking?.test?.category,
-      test_code: report.test_booking?.test?.code,
-      direct_test_id: report.test_id,
-      direct_test: report.test
-    });
-    
-    console.log("Patient details:", {
-      patient_id: report.test_booking?.patient_id,
-      patient_name: report.test_booking?.patient?.name,
-      patient_email: report.test_booking?.patient?.email,
-      direct_patient_id: report.patient_id,
-      direct_patient: report.patient
-    });
-    
-    console.log("Report parameters:", {
-      has_parameters: !!report.test_booking?.test?.parameters,
-      parameter_count: report.test_booking?.test?.parameters?.length || 0,
-      test_results_count: report.test_results?.length || 0,
-      sample_parameter: report.test_booking?.test?.parameters?.[0] || 'none',
-      sample_test_result: report.test_results?.[0] || 'none'
-    });
+  
     
     // Try to enhance report structure before displaying
     const enhancedReport = { ...report };
@@ -268,34 +259,40 @@ const LabReports = () => {
                         <FaEye className="mr-2" />
                         View
                       </button>
-                      
                       <button 
                         className={`flex items-center px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 ${
-                          report.status !== 'validated' ? 'opacity-50 cursor-not-allowed' : ''
+                          report.status !== 'submitted' ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
-                        onClick={() => handleDownload(report.id)}
-                        disabled={report.status !== 'validated'}
-                        title={report.status !== 'validated' ? 'Report must be validated to download' : 'Download Report'}
+                        onClick={() => {
+                          if (report.status === 'submitted') {
+                            console.log('Downloading report with ID:', report.id);
+                            handleDownload(report.id);
+                          } else {
+                            toast.warning('Report must be submitted before it can be downloaded');
+                          }
+                        }}
+                        disabled={report.status !== 'submitted'}
+                        title={report.status !== 'submitted' ? 'Report must be submitted to download' : 'Download Report'}
                       >
                         <FaDownload className="mr-2" />
                         Download
                       </button>
                       
                       <button
-                        onClick={() => report.status === 'validated' && handleSendNotification(report.id)}
+                        onClick={() => report.status === 'submitted' && handleSendNotification(report.id)}
                         className={`flex items-center px-3 py-2 rounded ${
                           notificationStatus[report.id] === 'sent'
                             ? 'bg-green-600 text-white'
-                            : report.status === 'validated' 
+                            : report.status === 'submitted' 
                               ? 'border border-indigo-600 text-indigo-600 hover:bg-indigo-50'
                               : 'border border-gray-400 text-gray-400 opacity-50 cursor-not-allowed'
                         }`}
                         disabled={
-                          report.status !== 'validated' ||
+                          report.status !== 'submitted' ||
                           notificationStatus[report.id] === 'sending' ||
                           notificationStatus[report.id] === 'sent'
                         }
-                        title={report.status !== 'validated' ? 'Report must be validated to send notification' : 'Notify Patient'}
+                        title={report.status !== 'submitted' ? 'Report must be submitted to send notification' : 'Notify Patient'}
                       >
                         {notificationStatus[report.id] === 'sending' ? (
                           <>
@@ -685,26 +682,34 @@ const LabReports = () => {
                 </div>
               )}
               
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="flex flex-row-reverse gap-6 mb-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Technician Notes</h3>
                   <div className="bg-gray-50 p-4 rounded-lg min-h-[100px]">
                     {selectedReport.technician_notes || 'No technician notes provided'}
                   </div>
                   <p className="mt-2 text-sm text-gray-600">
-                    Lab Technician: {
+                    Lab Technician: 
+                    <span className='font-medium px-2'>
+  {
                       selectedReport.labTechnician?.name || 
                       (selectedReport.lab_technician?.name) ||
                       (selectedReport.lab_technician_id && `Technician ID: ${selectedReport.lab_technician_id}`) || 
                       'Not assigned'
                     }
+                    </span>
+                  
                   </p>
                   <p className="text-sm text-gray-600">
-                    Submitted: {formatDate(selectedReport.submitted_at) || 'Not yet submitted'}
+                    Submitted:
+                    <span className='font-medium px-2'>
+                     {formatDate(selectedReport.submitted_at) || 'Not yet submitted'}
+
+                    </span>
                   </p>
                 </div>
                 
-                <div>
+                {/* <div>
                   <h3 className="text-lg font-semibold mb-2">Pathologist Notes</h3>
                   <div className="bg-gray-50 p-4 rounded-lg min-h-[100px]">
                     {selectedReport.pathologist_notes || (
@@ -726,34 +731,17 @@ const LabReports = () => {
                       (selectedReport.status === 'submitted' ? 'Pending review' : 'Not reviewed')
                     }
                   </p>
-                </div>
+                </div> */}
               </div>
               
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Conclusion</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   {selectedReport.conclusion || 'No conclusion provided'}
                 </div>
-              </div>
+              </div> */}
               
-              <div className="flex justify-end gap-2">
-                <button 
-                  className={`flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 ${
-                    selectedReport.status !== 'validated' ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  onClick={() => selectedReport.status === 'validated' && handleDownload(selectedReport.id)}
-                  disabled={selectedReport.status !== 'validated'}
-                >
-                  <FaDownload className="mr-2" />
-                  Download PDF
-                </button>
-                <button
-                  onClick={closeModal}
-                  className="flex items-center px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-                >
-                  Close
-                </button>
-              </div>
+
             </div>
           </div>
         </div>
