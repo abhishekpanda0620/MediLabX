@@ -11,7 +11,7 @@ MediLabX is a comprehensive pathology report software designed to streamline the
 ### Frontend
 2. Navigate to the project directory:
    ```
-   cd medilabx-frontend
+   cd frontend
    ```
 
 3. Install dependencies:
