@@ -1,4 +1,4 @@
-name: Deploy Frontend
+name: Deploy Frontend and Backend
 
 on:
   push:
@@ -24,8 +24,25 @@ jobs:
         echo 'VITE_API_URL="https://api-lab.deploywithabhi.com/api"' > .env
         npm install
         npm run build
+        
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, intl, gd, xml, zip, curl
+        
+    - name: Setup Composer
+      run: |
+        php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+        php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        php -r "unlink('composer-setup.php');"
+        
+    - name: Install Backend Dependencies
+      working-directory: ./backend
+      run: |
+        composer install --no-dev --optimize-autoloader
 
-    - name: Setup SSH key (debug)
+    - name: Setup SSH key
       run: |
         set -x  # echo commands before executing
         mkdir -p ~/.ssh || { echo "mkdir failed"; exit 1; }
@@ -33,12 +50,96 @@ jobs:
         chmod 600 ~/.ssh/id_ed25519 || { echo "chmod failed"; exit 1; }
         ssh-keyscan  -p 65002 -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts || { echo "ssh-keyscan failed"; exit 1; }
 
-
-
-    - name: Clean Remote Directory
+    - name: Clean Remote Frontend Directory
       run: |
         ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "rm -rf /domains/deploywithabhi.com/public_html/app-lab/*"
 
-    - name: Copy Dist Files to Remote Server
+    - name: Copy Dist Files to Remote Server (Frontend)
       run: |
         scp -i ~/.ssh/id_ed25519 -P 65002 -r frontend/dist/* ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:domains/deploywithabhi.com/public_html/app-lab/
+        
+    - name: Create Backend Directories
+      run: |
+        ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p /domains/deploywithabhi.com/public_html/api-lab"
+        
+    - name: Check if .env Exists on Server
+      run: |
+        if ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "[ -f /domains/deploywithabhi.com/public_html/api-lab/.env ]"; then
+          echo "ENV_EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "ENV_EXISTS=false" >> $GITHUB_ENV
+        fi
+        
+    - name: Create Default .env if Not Exists
+      if: env.ENV_EXISTS == 'false'
+      run: |
+        cp ./backend/.env.example ./backend/.env
+        sed -i 's/APP_ENV=.*/APP_ENV=production/' ./backend/.env
+        sed -i 's#APP_URL=.*#APP_URL=https://api-lab.deploywithabhi.com#' ./backend/.env
+        sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' ./backend/.env
+        
+    - name: Check if .htaccess Files Exist on Server
+      run: |
+        if ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "[ -f /domains/deploywithabhi.com/public_html/api-lab/.htaccess ]"; then
+          echo "ROOT_HTACCESS_EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "ROOT_HTACCESS_EXISTS=false" >> $GITHUB_ENV
+        fi
+        
+        if ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "[ -f /domains/deploywithabhi.com/public_html/api-lab/public/.htaccess ]"; then
+          echo "PUBLIC_HTACCESS_EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "PUBLIC_HTACCESS_EXISTS=false" >> $GITHUB_ENV
+        fi
+        
+    - name: Create Backup of Important Files
+      if: env.ENV_EXISTS == 'true' || env.ROOT_HTACCESS_EXISTS == 'true' || env.PUBLIC_HTACCESS_EXISTS == 'true'
+      run: |
+        ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p /domains/deploywithabhi.com/public_html/api-lab/backup"
+        
+        if [ "${{ env.ENV_EXISTS }}" == "true" ]; then
+          ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cp /domains/deploywithabhi.com/public_html/api-lab/.env /domains/deploywithabhi.com/public_html/api-lab/backup/.env"
+        fi
+        
+        if [ "${{ env.ROOT_HTACCESS_EXISTS }}" == "true" ]; then
+          ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cp /domains/deploywithabhi.com/public_html/api-lab/.htaccess /domains/deploywithabhi.com/public_html/api-lab/backup/.htaccess"
+        fi
+        
+        if [ "${{ env.PUBLIC_HTACCESS_EXISTS }}" == "true" ]; then
+          ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p /domains/deploywithabhi.com/public_html/api-lab/backup/public"
+          ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cp /domains/deploywithabhi.com/public_html/api-lab/public/.htaccess /domains/deploywithabhi.com/public_html/api-lab/backup/public/.htaccess"
+        fi
+        
+    - name: Deploy Backend Files (Excluding .env and .htaccess)
+      run: |
+        cd backend
+        # Create a tarball excluding .env and .htaccess
+        tar --exclude='.git' --exclude='node_modules' --exclude='vendor' --exclude='.env' --exclude='.htaccess' --exclude='public/.htaccess' -czf ../backend.tar.gz .
+        
+        # Upload and extract on server
+        scp -i ~/.ssh/id_ed25519 -P 65002 ../backend.tar.gz ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/domains/deploywithabhi.com/public_html/api-lab/
+        ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cd /domains/deploywithabhi.com/public_html/api-lab/ && tar -xzf backend.tar.gz && rm backend.tar.gz"
+        
+        # Copy vendor directory
+        tar -czf ../vendor.tar.gz vendor
+        scp -i ~/.ssh/id_ed25519 -P 65002 ../vendor.tar.gz ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/domains/deploywithabhi.com/public_html/api-lab/
+        ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cd /domains/deploywithabhi.com/public_html/api-lab/ && tar -xzf vendor.tar.gz && rm vendor.tar.gz"
+        
+    - name: Restore Important Files
+      if: env.ENV_EXISTS == 'true' || env.ROOT_HTACCESS_EXISTS == 'true' || env.PUBLIC_HTACCESS_EXISTS == 'true'
+      run: |
+        if [ "${{ env.ENV_EXISTS }}" == "true" ]; then
+          ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cp /domains/deploywithabhi.com/public_html/api-lab/backup/.env /domains/deploywithabhi.com/public_html/api-lab/.env"
+        fi
+        
+        if [ "${{ env.ROOT_HTACCESS_EXISTS }}" == "true" ]; then
+          ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cp /domains/deploywithabhi.com/public_html/api-lab/backup/.htaccess /domains/deploywithabhi.com/public_html/api-lab/.htaccess"
+        else
+          scp -i ~/.ssh/id_ed25519 -P 65002 ./backend/.htaccess ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/domains/deploywithabhi.com/public_html/api-lab/
+        fi
+        
+        if [ "${{ env.PUBLIC_HTACCESS_EXISTS }}" == "true" ]; then
+          ssh -i ~/.ssh/id_ed25519 -p 65002 ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cp /domains/deploywithabhi.com/public_html/api-lab/backup/public/.htaccess /domains/deploywithabhi.com/public_html/api-lab/public/.htaccess"
+        else
+          scp -i ~/.ssh/id_ed25519 -P 65002 ./backend/public/.htaccess ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/domains/deploywithabhi.com/public_html/api-lab/public/
+        fi
