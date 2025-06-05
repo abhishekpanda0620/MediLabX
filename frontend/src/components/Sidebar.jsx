@@ -23,7 +23,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse, userRole, isMobileOpen, onMobile
     ],
     lab_technician: [
       { path: '/lab', label: 'Dashboard', icon: FaHome },
-      { path: '/lab/samples', label: 'Samples', icon: FaVials },
+      // { path: '/lab/samples', label: 'Samples', icon: FaVials },
       { path: '/lab/reports', label: 'Reports', icon: FaFileAlt },
       { path: '/lab/create-case', label: 'Create Case & Report', icon: FaClipboardList },
       // { path: '/lab/generate-report', label: 'Generate Report', icon: FaFileAlt },

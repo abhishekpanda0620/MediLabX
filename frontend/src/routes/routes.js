@@ -61,7 +61,7 @@ export const protectedRoutes = {
   ],
   lab_technician: [
     { path: '/lab', element: LabDashboard },
-    { path: '/lab/samples', element: SampleManagement },
+    // { path: '/lab/samples', element: SampleManagement },
     { path: '/tests', element: TestCatalog },
     { path: '/lab/reports', element: LabReports },
     { path: '/lab/pending-tests', element: SampleManagement }, // NEW
