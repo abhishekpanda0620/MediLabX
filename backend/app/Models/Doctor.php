@@ -35,6 +35,6 @@ class Doctor extends Model
      */
     public function referredTests()
     {
-        return $this->hasMany(TestBooking::class, 'referring_doctor_id');
+        return $this->hasMany(TestBooking::class, 'doctor_id');
     }
 }

@@ -19,7 +19,7 @@ class TestReportController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = TestReport::with(['testBooking', 'testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
+        $query = TestReport::with(['testBooking', 'testBooking.patient', 'testBooking.test', 'testBooking.doctor', 'labTechnician']);
 
         // Check if showAll parameter is specified, used for admin views and lab reports page
        
@@ -212,7 +212,7 @@ class TestReportController extends Controller
 
         try {
             // Load necessary relationships
-            $testReport->load(['testBooking.patient', 'testBooking.test', 'testBooking.test.parameters', 'labTechnician', 'pathologist']);
+            $testReport->load(['testBooking.patient', 'testBooking.test', 'testBooking.test.parameters', 'testBooking.doctor', 'labTechnician', 'pathologist']);
 
             // Check for missing data
             if (!$testReport->testBooking || !$testReport->testBooking->patient || !$testReport->testBooking->test) {
@@ -263,7 +263,7 @@ class TestReportController extends Controller
         }
 
         // Load necessary relationships
-        $testReport->load(['testBooking.patient', 'testBooking.test', 'labTechnician', 'pathologist']);
+        $testReport->load(['testBooking.patient', 'testBooking.test', 'testBooking.doctor', 'labTechnician', 'pathologist']);
 
         // Return the report data for preview
         return response()->json([
@@ -283,7 +283,7 @@ public function notify(Request $request, TestReport $testReport)
     // }
 
     try {
-        $testReport->load(['testBooking.patient', 'testBooking.test']);
+        $testReport->load(['testBooking.patient', 'testBooking.test', 'testBooking.doctor']);
         $patient = $testReport->testBooking->patient;
         if (!$patient) {
             return response()->json(['message' => 'Patient not found'], 404);

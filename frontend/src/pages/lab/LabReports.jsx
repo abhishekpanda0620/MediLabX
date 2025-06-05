@@ -483,9 +483,7 @@ const LabReports = () => {
                       return (
                         <p className="mb-2">
                           <span className="font-medium">Name:</span> {
-                            patientName || 
-                            (patientId && `Patient ID: ${patientId}`) || 
-                            'N/A'
+                            patientName ||  'N/A'
                           }
                         </p>
                       );
@@ -504,16 +502,7 @@ const LabReports = () => {
                       );
                     })()}
                     
-                    {/* Patient ID display */}
-                    <p className="mb-2">
-                      <span className="font-medium">Patient ID:</span> {
-                        selectedReport.test_booking?.patient?.id || 
-                        selectedReport.test_booking?.patient_id ||
-                        selectedReport.patient?.id ||
-                        selectedReport.patient_id || 
-                        'N/A'
-                      }
-                    </p>
+                   
                     
                     {/* Enhanced doctor display with fallbacks */}
                     {(() => {
@@ -527,7 +516,7 @@ const LabReports = () => {
                                       
                       return (
                         <p>
-                          <span className="font-medium">Doctor:</span> {
+                          <span className="font-medium">Reffered By:</span> {
                             doctorName || 'Not assigned'
                            
                           }
